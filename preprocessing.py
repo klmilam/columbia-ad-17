@@ -46,25 +46,30 @@ def read_file_from_GCS(bucket_name, filename, api_key_path, project, output_file
   if output_filename == "":
     return blob.download_as_string()
   else:
-    blob.download_to_filename(output_filename)
-  
-
-def run(filename, bucket_name, output_tf_filename):
-  """Creates TFRecords and adds them to local directory
-  """
-  #filenames = os.listdir(input_dir)
-
-  read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
-      "example.nii")
-  create_tfrecord(["example.nii"], output_tf_filename)
-  labels = get_labels_array(bucket_name, "ADNI_t1_list_with_fsstatus_20190111.csv")
+    blob.download_to_filename(output_filename) 
 
 
 def get_labels_array(bucket_name, filename):
   output = read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage")
   csv_output = pd.read_csv(BytesIO(output))
-  trimmed_output = csv_output[["nifti_file_name","Group"]]
+  trimmed_output = csv_output[["Subject","T1.SERIESID","Group"]]
   return trimmed_output
+
+def find_label(labels, filename):
+  subject = "_".join(filename.split("/")[1].split("_")[0:3])
+  seriesID = filename.split("/")[1].split("_")[3:4][0][1:]
+  label = labels[labels["Subject"] == subject][labels["T1.SERIESID"] == int(seriesID)]
+  return label["Group"].item()
+
+def run(filename, bucket_name, output_tf_filename):
+  """Creates TFRecords and adds them to local directory
+  """
+  #filenames = os.listdir(input_dir)
+  #read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
+  #    "example.nii")
+  #create_tfrecord(["example.nii"], output_tf_filename)
+  labels = get_labels_array(bucket_name, "ADNI_t1_list_with_fsstatus_20190111.csv")
+  find_label(labels, filename)
 
 def main():
   #TODO: add CLI argument parsing
