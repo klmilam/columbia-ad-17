@@ -30,22 +30,35 @@ def create_tfrecord(filenames, tfrecord_filename):
   """
   with tf.python_io.TFRecordWriter(tfrecord_filename) as writer:
     for filename in filenames:
+      print(filename)
       image = nib.load(filename)
       image_data = image.get_fdata()
       example = serialize_example(image_data)
       writer.write(example)
 
+def read_file_from_GCS(bucket_name, filename, api_key_path, project, output_filename=""):
+  credentials = service_account.Credentials.from_service_account_file(api_key_path)
+  client = storage.Client(credentials=credentials,project=project)
+  bucket = client.get_bucket(bucket_name)
+  blob = bucket.blob(filename)
+  if output_filename == "":
+    return blob.download_as_string()
+  else:
+    blob.download_to_filename(output_filename)
+  
 
-def run(filename, bucket_name, output_filename):
+def run(filename, bucket_name, output_tf_filename):
   """Creates TFRecords and adds them to local directory
   """
   #filenames = os.listdir(input_dir)
-  credentials = service_account.Credentials.from_service_account_file(INPUT_API_KEY)
-  client = storage.Client(credentials=credentials,project="columbia-dl-storage")
-  bucket = client.get_bucket(bucket_name)
-  blob = bucket.blob(filename)
-  blob.download_to_filename('example.nii')
-  create_tfrecord('example.nii', output_filename)
+
+  #read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
+  #    "example.nii")
+  create_tfrecord(["example.nii"], output_tf_filename)
+
+
+#def get_labels_array(bucket_name, filename):
+
 
 
 def main():
