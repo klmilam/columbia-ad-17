@@ -1,7 +1,9 @@
 import tensorflow as tf
 import nibabel as nib
 import numpy as np
+import pandas as pd
 import os
+from io import BytesIO
 from google.oauth2 import service_account
 from google.cloud import storage
 
@@ -52,14 +54,17 @@ def run(filename, bucket_name, output_tf_filename):
   """
   #filenames = os.listdir(input_dir)
 
-  #read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
-  #    "example.nii")
+  read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
+      "example.nii")
   create_tfrecord(["example.nii"], output_tf_filename)
+  labels = get_labels_array(bucket_name, "ADNI_t1_list_with_fsstatus_20190111.csv")
 
 
-#def get_labels_array(bucket_name, filename):
-
-
+def get_labels_array(bucket_name, filename):
+  output = read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage")
+  csv_output = pd.read_csv(BytesIO(output))
+  trimmed_output = csv_output[["nifti_file_name","Group"]]
+  return trimmed_output
 
 def main():
   #TODO: add CLI argument parsing

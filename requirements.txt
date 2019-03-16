@@ -2,3 +2,4 @@ tensorflow>=1.10
 nibabel>=2.3.3
 google-api-python-client
 google-cloud-storage
+pandas
