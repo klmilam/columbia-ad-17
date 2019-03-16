@@ -16,26 +16,33 @@ def _int64_feature(value):
 def _float_feature(value):
   return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
+def _bytes_feature(value):
+  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
-def serialize_example(image):
+def serialize_example(image, label):
   #TODO: should data be ravelled?
   feature = {
-    'train/image': _float_feature(image.ravel())
+    'train/image': _float_feature(image.ravel()),
+    'train/label': _bytes_feature(label.encode('utf-8'))
   }
   example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
   return example_proto.SerializeToString()
 
 
-def create_tfrecord(filenames, tfrecord_filename):
+def create_tfrecord(filenames, bucket_name, labels, tfrecord_filename):
   """Load each image and convert to add to TFRecord
   TFRecord is added to local directory
   """
+  local_filename = "example.nii"
   with tf.python_io.TFRecordWriter(tfrecord_filename) as writer:
     for filename in filenames:
       print(filename)
-      image = nib.load(filename)
+      read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
+          local_filename)
+      image = nib.load(local_filename)
       image_data = image.get_fdata()
-      example = serialize_example(image_data)
+      label = find_label(labels, filename)
+      example = serialize_example(image_data, label)
       writer.write(example)
 
 def read_file_from_GCS(bucket_name, filename, api_key_path, project, output_filename=""):
@@ -67,9 +74,9 @@ def run(filename, bucket_name, output_tf_filename):
   #filenames = os.listdir(input_dir)
   #read_file_from_GCS(bucket_name, filename, INPUT_API_KEY, "columbia-dl-storage",
   #    "example.nii")
-  #create_tfrecord(["example.nii"], output_tf_filename)
   labels = get_labels_array(bucket_name, "ADNI_t1_list_with_fsstatus_20190111.csv")
-  find_label(labels, filename)
+  create_tfrecord([filename], bucket_name, labels, output_tf_filename)
+
 
 def main():
   #TODO: add CLI argument parsing
