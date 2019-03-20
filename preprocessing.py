@@ -10,6 +10,7 @@ from google.oauth2 import service_account
 from google.cloud import storage
 
 INPUT_API_KEY="columbia-dl-storage-ab27543d7772.json"
+OUTPUT_API_KEY="ieor-dl-group17-3493a54f706a.json"
 
 def _int64_feature(value):
   return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -26,8 +27,8 @@ def _bytes_feature(value):
 def serialize_example(image, label):
   #TODO: should data be ravelled?
   feature = {
-    'train/image': _float_feature(image.ravel()),
-    'train/label': _bytes_feature(label.encode('utf-8'))
+    'image': _float_feature(image.ravel()),
+    'label': _bytes_feature(label.encode('utf-8'))
   }
   example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
   return example_proto.SerializeToString()
@@ -58,6 +59,12 @@ def create_tfrecord(bucket_name, prefix, labels, tfrecord_filename):
         counter = counter + 1
       if counter > 4:
         break
+  credentials = service_account.Credentials.from_service_account_file(OUTPUT_API_KEY)
+  output_client = storage.Client(credentials=credentials, project="ieor-dl-group17")
+  bucket = output_client.get_bucket("ieor-dl-group17")
+  blob = bucket.blob("input-data/train.tfrecords")
+  blob.upload_from_filename("train.tfrecords")
+
 
 
 def read_file_from_GCS(bucket_name, filename, api_key_path, project, output_filename=""):
