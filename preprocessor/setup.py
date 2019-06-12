@@ -16,5 +16,5 @@ setup(
     version='0.1',
     author='Kim Milam',
     install_requires=REQUIRED_PACKAGES,
-    packages=['preprocessor']
+    packages=find_packages()
 )
