@@ -1,7 +1,13 @@
+"""Start preprocessing job for converting NII files to TFRecords"""
+
 import argparse
 import sys
+import os
+import logging
 from datetime import datetime
+import posixpath
 
+from preprocessor import preprocess
 
 def parse_arguments(argv):
     """Parse command-line arguments"""
@@ -36,13 +42,38 @@ def parse_arguments(argv):
         help="""Google Cloud project ID""",
         default='internal-klm'
     )
+    parser.add_argument(
+        '--input_dir',
+        help="""GCS directory where NII files are stored.""",
+        default='gs://columbia-dl-storage-bucket/data/'
+    )
+    parser.add_argument(
+        '--machine_type',
+        help='Input file (test)',
+        default='n1-highmem-2'
+    )
     known_args, _ = parser.parse_known_args(argv)
     return known_args
 
 
+def get_pipeline_args(flags):
+    """Create Apache Beam pipeline arguments"""
+    options = {
+        'project': flags.project_id,
+        'staging_location': os.path.join(flags.output_dir, 'staging'),
+        'temp_location': os.path.join(flags.output_dir, 'temp2'),
+        'job_name': flags.job_name,
+        'save_main_session': True,
+        'setup_file': posixpath.abspath(
+            posixpath.join(posixpath.dirname(__file__), 'setup.py'))
+    }
+    return options
+
+
 def main():
     flags = parse_arguments(sys.argv[1:])
-    #TODO(kmilam): add pipeline args
+    pipeline_args = get_pipeline_args(flags)
+    logging.basicConfig(level=getattr(logging, flags.log_level.upper()))
 
 
 if __name__ == '__main__':
