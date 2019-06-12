@@ -74,6 +74,7 @@ def main():
     flags = parse_arguments(sys.argv[1:])
     pipeline_args = get_pipeline_args(flags)
     logging.basicConfig(level=getattr(logging, flags.log_level.upper()))
+    preprocess.run(flags, pipeline_args)
 
 
 if __name__ == '__main__':
