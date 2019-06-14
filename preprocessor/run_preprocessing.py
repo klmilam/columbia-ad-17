@@ -19,7 +19,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--output_dir',
-        default=os.path.join('gs://internal-klm/mri', timestamp)
+        default=os.path.join('gs://ieor-dl-group17/mri', timestamp)
     )
     parser.add_argument(
         '--log_level',
@@ -40,17 +40,12 @@ def parse_arguments(argv):
     parser.add_argument(
         '--project_id',
         help="""Google Cloud project ID""",
-        default='internal-klm'
+        default='ieor-dl-group17'
     )
     parser.add_argument(
         '--input_dir',
         help="""GCS directory where NII files are stored.""",
         default='gs://columbia-dl-storage-bucket/data/'
-    )
-    parser.add_argument(
-        '--machine_type',
-        help='Input file (test)',
-        default='n1-highmem-2'
     )
     known_args, _ = parser.parse_known_args(argv)
     return known_args
@@ -61,7 +56,7 @@ def get_pipeline_args(flags):
     options = {
         'project': flags.project_id,
         'staging_location': os.path.join(flags.output_dir, 'staging'),
-        'temp_location': os.path.join(flags.output_dir, 'temp2'),
+        'temp_location': os.path.join(flags.output_dir, 'temp'),
         'job_name': flags.job_name,
         'save_main_session': True,
         'setup_file': posixpath.abspath(
