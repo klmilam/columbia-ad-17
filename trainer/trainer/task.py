@@ -90,6 +90,7 @@ def train_and_evaluate(flags):
     #Get TF transform metadata generated during preprocessing
     tf_transform_output = tft.TFTransformOutput(flags.input_dir)
 
+    #Define training spec
     feature_spec = tf.tf_transform_output.transformed_feature_spec()
     train_input_fn = functools.partial(
     	input_util.input_fn,
@@ -100,6 +101,21 @@ def train_and_evaluate(flags):
     	label_name=metadata.LABEL_COLUMN,
     	feature_spec=feature_spec
     )
+    train_spec = tf.estimator.TrainSpec(
+        train_input_fn, max_steps=flags.train_steps)
+
+    #Define eval spec
+    eval_input_fn = functools.partial(
+        input_util.input_fn,
+        flags.input_dir,
+        tf.estimator.ModeKeys.EVAL,
+        flags.eval_batch_size,
+        num_epochs=1,
+        label_name=metadata.LABEL_COLUMN,
+        feature_spec=feature_spec
+    )
+
+    
 
 def main():
     #Parse command-line arguments
