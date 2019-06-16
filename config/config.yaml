@@ -1,9 +1,0 @@
-trainingInput:
-  # Use a cluster with many workers and a few parameter servers.
-  scaleTier: BASIC_TPU #CUSTOM
-  #masterType: complex_model_m_p100 #4
-  #workerType: complex_model_m_p100 #4*n
-  #parameterServerType: complex_model_m_p100 #1
-  #workerCount: 4
-  #parameterServerCount: 5 #This error may also occur due to a gRPC failure caused by high memory or network bandwidth usage in the parameter servers. 
-  # # of ps replicas >= ((# of worker replicas)/2 + 1)
