@@ -40,3 +40,16 @@ def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
 
     label = features.pop(label_name)
     return features, label
+
+def tfrecord_serving_input_fn(feature_spec, label_name=None):
+    """Creates ServingInputReceiver for TFRecord inputs"""
+    if label_name:
+        _ = feature_spec.pop(label_name)
+
+    serving_input_receiver = (
+        tf.estimator.export.build_parsing_serving_input_receiver_fn(
+            feature_spec)())
+
+    return tf.estimator.export.ServingInputReceiver(
+        serving_input_receiver.features, serving_input_receiver.receiver_tensors)
+    

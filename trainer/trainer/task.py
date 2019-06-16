@@ -114,8 +114,19 @@ def train_and_evaluate(flags):
         label_name=metadata.LABEL_COLUMN,
         feature_spec=feature_spec
     )
+    exporter = tf.estimator.FinalExporter(
+        "export", functools.partial(
+            input_util.tfrecord_serving_input_fn,
+            feature_spec,
+            label_name=metadata.LABEL_COLUMN))
 
-    
+    eval_spec = tf.estimator.EvalSpec(
+        eval_input_fn,
+        steps=flags.eval_steps,
+        start_delay_secs=flags.eval_start_secs,
+        exporters=[exporter],
+        name='MRI-eval'
+    )
 
 def main():
     #Parse command-line arguments
