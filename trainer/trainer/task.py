@@ -9,6 +9,7 @@ import tensorflow_transform as tft
 
 from trainer import input_util
 from trainer import metadata
+from trainer import model
 
 SEED = 123
 
@@ -127,6 +128,23 @@ def train_and_evaluate(flags):
         exporters=[exporter],
         name='MRI-eval'
     )
+
+    #Define training config
+    run_config = tf.estimator.RunConfig(
+        save_checkpoints_steps=1000,
+        tf_random_seed=SEED,
+        model_dir=flags.job_dir
+    )
+
+    #Build the estimator
+    feature_columns = model.get_feature_columns(
+        tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
+
+    estimator = model.build_estimator(run_config, flags, feature_columns,
+                                      num_intervals)
+
+    #Run training and evaluation
+    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 def main():
     #Parse command-line arguments
