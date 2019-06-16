@@ -92,7 +92,7 @@ def train_and_evaluate(flags):
     tf_transform_output = tft.TFTransformOutput(flags.input_dir)
 
     #Define training spec
-    feature_spec = tf.tf_transform_output.transformed_feature_spec()
+    feature_spec = tf_transform_output.transformed_feature_spec()
     train_input_fn = functools.partial(
     	input_util.input_fn,
     	flags.input_dir,
@@ -140,11 +140,11 @@ def train_and_evaluate(flags):
     feature_columns = model.get_feature_columns(
         tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
 
-    estimator = model.build_estimator(run_config, flags, feature_columns,
-                                      num_intervals)
+    #estimator = model.build_estimator(run_config, flags, feature_columns,
+    #                                  num_intervals)
 
     #Run training and evaluation
-    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+    #tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 def main():
     #Parse command-line arguments
