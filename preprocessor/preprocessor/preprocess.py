@@ -18,7 +18,6 @@ import os
 import io
 import numpy as np
 
-
 from preprocessor import features
 
 
@@ -29,32 +28,11 @@ def get_keys(filename):
     return subject, seriesID
 
 
-def _float_feature(value):
-    return tf.train.Feature(float_list=tf.train.FloatList(value=value))
-
-
-def _int64_feature(value):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
-
-
 def get_labels_array(filename):
     output = tf.gfile.Open(filename)
     csv_output = pd.read_csv(output)
     trimmed_output = csv_output[["Subject","T1.SERIESID","Group"]]
     return trimmed_output
-
-
-def _create_tfrecord(element):
-    import tensorflow as tf
-    image = element['image']
-    feature = {
-        #'subject': _int64_feature(int(element(['subject']))), 
-        'series': _int64_feature(int(element(['series']))),
-        'label': _int64_feature(element['label']),
-        'image': _float_feature(image.ravel()),
-    }
-    example = tf.train.Example(features=tf.train.Features(feature=feature))
-    return example.SerializeToString()
 
 
 class read_label(beam.DoFn):
@@ -163,18 +141,6 @@ def run(flags, pipeline_args):
     files = tf.gfile.Glob(flags.input_dir+"*")
     labels = get_labels_array(
             "gs://columbia-dl-storage-bucket/ADNI_t1_list_with_fsstatus_20190111.csv")
-    train_tfrecord = beam.io.WriteToTFRecord(
-        os.path.join(flags.output_dir,'train/tfrecord'),
-        file_name_suffix='.tfrecord'
-    )
-    val_tfrecord = beam.io.WriteToTFRecord(
-        os.path.join(flags.output_dir,'val/tfrecord'),
-        file_name_suffix='.tfrecord'
-    )
-    test_tfrecord = beam.io.WriteToTFRecord(
-        os.path.join(flags.output_dir,'test/tfrecord'),
-        file_name_suffix='.tfrecord'
-    )
 
     with beam.Pipeline(runner, options=options) as p:
         with tft_beam.Context(temp_dir=temp_dir):
