@@ -6,12 +6,20 @@ import multiprocessing
 import tensorflow as tf
 import tensorflow_transform as tft
 
-def read_and_decode_fn(example):
-    fn = lambda examples: tf.parse_example(example, feature_spec)
-    return fn
+
 
 def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
     label_name=None, feature_spec=None):
+
+    def read_and_decode_fn(example):
+        features = tf.parse_single_example(example, feature_spec)
+        image = features.pop('image')
+        image = tf.reshape(image, [256, 256, 256])
+        features['image'] = image
+        label = tf.cast(features.pop(label_name), tf.int32)
+        return features, label
+
+
     if feature_spec is None:
         tf_transform_output = tft.TFTransformOutput(
             os.path.join(input_dir, 'transformed_metadata'))
@@ -41,6 +49,7 @@ def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
     label = features.pop(label_name)
     return features, label
 
+
 def tfrecord_serving_input_fn(feature_spec, label_name=None):
     """Creates ServingInputReceiver for TFRecord inputs"""
     if label_name:
@@ -52,4 +61,3 @@ def tfrecord_serving_input_fn(feature_spec, label_name=None):
 
     return tf.estimator.export.ServingInputReceiver(
         serving_input_receiver.features, serving_input_receiver.receiver_tensors)
-    
