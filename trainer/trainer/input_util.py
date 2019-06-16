@@ -10,8 +10,8 @@ def read_and_decode_fn(example):
     fn = lambda examples: tf.parse_example(example, feature_spec)
     return fn
 
-def input_fn(input_dir, mode, batch_size=1, label_name=None, 
-    feature_spec=None):
+def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
+    label_name=None, feature_spec=None):
     if feature_spec is None:
         tf_transform_output = tft.TFTransformOutput(
             os.path.join(input_dir, 'transformed_metadata'))

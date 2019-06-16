@@ -7,8 +7,10 @@ import functools
 import tensorflow as tf
 import tensorflow_transform as tft
 
-SEED = 123
+from trainer import input_util
+from trainer import metadata
 
+SEED = 123
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
@@ -87,6 +89,17 @@ def train_and_evaluate(flags):
     """Runs model training and evaluation using TF Estimator API"""
     #Get TF transform metadata generated during preprocessing
     tf_transform_output = tft.TFTransformOutput(flags.input_dir)
+
+    feature_spec = tf.tf_transform_output.transformed_feature_spec()
+    train_input_fn = functools.partial(
+    	input_util.input_fn,
+    	flags.input_dir,
+    	tf.estimator.ModeKeys.TRAIN,
+    	flags.train_batch_size,
+    	flags.num_epochs,
+    	label_name=metadata.LABEL_COLUMN,
+    	feature_spec=feature_spec
+    )
 
 def main():
     #Parse command-line arguments
