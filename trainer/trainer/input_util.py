@@ -19,11 +19,11 @@ def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
         label = tf.cast(features.pop(label_name), tf.int32)
         return features, label
 
-
     if feature_spec is None:
         tf_transform_output = tft.TFTransformOutput(
             os.path.join(input_dir, 'transformed_metadata'))
         feature_spec = tf_transform_output.transformed_feature_spec()
+
     prefix = str(mode).lower()
     suffix = '.tfrecord'
     num_cpus = multiprocessing.cpu_count()

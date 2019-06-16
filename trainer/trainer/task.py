@@ -13,6 +13,14 @@ from trainer import model
 
 SEED = 123
 
+tf.logging.set_verbosity(tf.logging.INFO)
+tf.flags.DEFINE_string('tpu', None, 'Name of TPU to run this against')
+tf.flags.DEFINE_string('gcp_project', None, 'GCP project containing the TPU')
+tf.flags.DEFINE_string('tpu_zone', None, 'GCP zone of the TPU')
+tf.flags.DEFINE_integer('num_cores', 8, 'Number of cores in TPU')
+FLAGS = tf.flags.FLAGS
+
+
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -94,13 +102,13 @@ def train_and_evaluate(flags):
     #Define training spec
     feature_spec = tf_transform_output.transformed_feature_spec()
     train_input_fn = functools.partial(
-    	input_util.input_fn,
-    	flags.input_dir,
-    	tf.estimator.ModeKeys.TRAIN,
-    	flags.train_batch_size,
-    	flags.num_epochs,
-    	label_name=metadata.LABEL_COLUMN,
-    	feature_spec=feature_spec
+        input_util.input_fn,
+        flags.input_dir,
+        tf.estimator.ModeKeys.TRAIN,
+        flags.train_batch_size,
+        flags.num_epochs,
+        label_name=metadata.LABEL_COLUMN,
+        feature_spec=feature_spec
     )
     train_spec = tf.estimator.TrainSpec(
         train_input_fn, max_steps=flags.train_steps)
@@ -128,12 +136,24 @@ def train_and_evaluate(flags):
         exporters=[exporter],
         name='MRI-eval'
     )
+    print(flags.input_dir)
+    steps_per_run_train = 7943 // (flags.train_batch_size * FLAGS.num_cores)
+    steps_per_run_eval = 964 // (flags.eval_batch_size * FLAGS.num_cores)
+
+    tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+        FLAGS.tpu, #flags inferred from AI Platform environment
+        zone=FLAGS.tpu_zone,
+        project=FLAGS.gcp_project)
 
     #Define training config
     run_config = tf.estimator.RunConfig(
-        save_checkpoints_steps=1000,
+        save_checkpoints_steps=200,
         tf_random_seed=SEED,
-        model_dir=flags.job_dir
+        model_dir=flags.job_dir,
+        train_distribute=tf.contrib.distribute.TPUStrategy(
+            tpu_cluster_resolver, steps_per_run=steps_per_run_train),
+        eval_distribute=tf.contrib.distribute.TPUStrategy(
+            tpu_cluster_resolver, steps_per_run=steps_per_run_eval)
     )
 
     #Build the estimator
