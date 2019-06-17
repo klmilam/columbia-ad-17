@@ -13,13 +13,6 @@ from trainer import model
 
 SEED = 123
 
-tf.logging.set_verbosity(tf.logging.INFO)
-tf.flags.DEFINE_string('tpu', None, 'Name of TPU to run this against')
-tf.flags.DEFINE_string('gcp_project', None, 'GCP project containing the TPU')
-tf.flags.DEFINE_string('tpu_zone', None, 'GCP zone of the TPU')
-tf.flags.DEFINE_integer('num_cores', 8, 'Number of cores in TPU')
-FLAGS = tf.flags.FLAGS
-
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
@@ -32,13 +25,13 @@ def parse_arguments(argv):
         '--train-batch-size',
         help='Batch size for each training step',
         type=int,
-        default=120
+        default=8
     )
     parser.add_argument(
         '--eval-batch-size',
         help='Batch size for evaluation steps',
         type=int,
-        default=1000
+        default=8
     )
     parser.add_argument(
         '--eval-start-secs',
@@ -92,6 +85,17 @@ def parse_arguments(argv):
         default=0.021388123321319803,
         type=float
     )
+    parser.add_argument(
+        '--tpu',
+        default=None,
+        help="""The name or GRPC URL of the TPU node.
+        Leave it as `None` when training on AI Platform."""
+    )
+    parser.add_argument(
+        '--use-tpu',
+        action='store_true',
+        help='Include flag if using TPU.'
+    )
     return parser.parse_args(argv)
 
 def train_and_evaluate(flags):
@@ -136,35 +140,31 @@ def train_and_evaluate(flags):
         exporters=[exporter],
         name='MRI-eval'
     )
-    print(flags.input_dir)
-    steps_per_run_train = 7943 // (flags.train_batch_size * FLAGS.num_cores)
-    steps_per_run_eval = 964 // (flags.eval_batch_size * FLAGS.num_cores)
+    steps_per_run_train = 7943 // (flags.train_batch_size * 4)
+    steps_per_run_eval = 964 // (flags.eval_batch_size * 4)
 
+    #additional configs required for using TPUs
     tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
-        FLAGS.tpu, #flags inferred from AI Platform environment
-        zone=FLAGS.tpu_zone,
-        project=FLAGS.gcp_project)
-
+        flags.tpu)
+    tpu_config = tf.contrib.tpu.TPUConfig(
+        num_shards=8, # using Cloud TPU v2-8
+        iterations_per_loop=200)
     #Define training config
-    run_config = tf.estimator.RunConfig(
+    run_config = tf.contrib.tpu.RunConfig(
+        cluster=tpu_cluster_resolver,
+        model_dir=args.job_dir,
+        tpu_config=tpu_config,
         save_checkpoints_steps=200,
-        tf_random_seed=SEED,
-        model_dir=flags.job_dir,
-        train_distribute=tf.contrib.distribute.TPUStrategy(
-            tpu_cluster_resolver, steps_per_run=steps_per_run_train),
-        eval_distribute=tf.contrib.distribute.TPUStrategy(
-            tpu_cluster_resolver, steps_per_run=steps_per_run_eval)
-    )
-
+        save_summary_steps=100)
     #Build the estimator
     feature_columns = model.get_feature_columns(
         tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
 
-    #estimator = model.build_estimator(run_config, flags, feature_columns,
-    #                                  num_intervals)
+    estimator = model.build_estimator(run_config, flags, feature_columns,
+                                      num_intervals)
 
     #Run training and evaluation
-    #tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 
 def main():
     #Parse command-line arguments
