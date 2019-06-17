@@ -13,11 +13,10 @@ def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
 
     def read_and_decode_fn(example):
         features = tf.parse_single_example(example, feature_spec)
-        image = features.pop('image')
+        image = features['image']
         image = tf.reshape(image, [256, 256, 256])
-        features['image'] = image
-        label = tf.cast(features.pop(label_name), tf.int32)
-        return features, label
+        label = tf.cast(features['label_name'], tf.int32)
+        return image, label
 
     if feature_spec is None:
         tf_transform_output = tft.TFTransformOutput(
@@ -38,7 +37,7 @@ def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
     dataset = dataset.apply(
         tf.data.experimental.map_and_batch(
             map_func=read_and_decode_fn,
-            batch_size=BATCH_SIZE,
+            batch_size=batch_size,
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
     )
     iterator = dataset.make_one_shot_iterator()
