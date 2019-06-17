@@ -10,12 +10,13 @@ import tensorflow_transform as tft
 
 def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
     label_name=None, feature_spec=None):
-
+    """Reads TFRecords and returns the features and labels"""
     def read_and_decode_fn(example):
+        """Parses Serialized Example."""
         features = tf.parse_single_example(example, feature_spec)
         image = features['image']
         image = tf.reshape(image, [256, 256, 256])
-        label = tf.cast(features['label_name'], tf.int32)
+        label = tf.cast(features[label_name], tf.int32)
         return image, label
 
     if feature_spec is None:
@@ -41,12 +42,10 @@ def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
     )
     iterator = dataset.make_one_shot_iterator()
-    features = iterator.get_next()
+    features, labels = iterator.get_next()
     if mode == tf.estimator.ModeKeys.PREDICT:
         return features
-
-    label = features.pop(label_name)
-    return features, label
+    return features, labels
 
 
 def tfrecord_serving_input_fn(feature_spec, label_name=None):

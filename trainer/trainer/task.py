@@ -152,7 +152,7 @@ def train_and_evaluate(flags):
     #Define training config
     run_config = tf.contrib.tpu.RunConfig(
         cluster=tpu_cluster_resolver,
-        model_dir=args.job_dir,
+        model_dir=flags.job_dir,
         tpu_config=tpu_config,
         save_checkpoints_steps=200,
         save_summary_steps=100)
@@ -160,11 +160,11 @@ def train_and_evaluate(flags):
     feature_columns = model.get_feature_columns(
         tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
 
-    estimator = model.build_estimator(run_config, flags, feature_columns,
-                                      num_intervals)
+    estimator = model.build_estimator(run_config, flags, feature_columns)
 
     #Run training and evaluation
-    tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+    #tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+    estimator.train(train_input_fn)
 
 def main():
     #Parse command-line arguments
