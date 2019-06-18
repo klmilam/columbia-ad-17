@@ -114,10 +114,6 @@ def train_and_evaluate(flags):
         label_name=metadata.LABEL_COLUMN,
         feature_spec=feature_spec
     )
-    train_spec = tf.estimator.TrainSpec(
-        train_input_fn, max_steps=flags.train_steps)
-
-    #Define eval spec
     eval_input_fn = functools.partial(
         input_util.input_fn,
         flags.input_dir,
@@ -127,44 +123,53 @@ def train_and_evaluate(flags):
         label_name=metadata.LABEL_COLUMN,
         feature_spec=feature_spec
     )
-    exporter = tf.estimator.FinalExporter(
-        "export", functools.partial(
-            input_util.tfrecord_serving_input_fn,
-            feature_spec,
-            label_name=metadata.LABEL_COLUMN))
 
-    eval_spec = tf.estimator.EvalSpec(
-        eval_input_fn,
-        steps=flags.eval_steps,
-        start_delay_secs=flags.eval_start_secs,
-        exporters=[exporter],
-        name='MRI-eval'
-    )
     steps_per_run_train = 7943 // (flags.train_batch_size * 4)
     steps_per_run_eval = 964 // (flags.eval_batch_size * 4)
 
-    #additional configs required for using TPUs
-    tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
-        flags.tpu)
-    tpu_config = tf.contrib.tpu.TPUConfig(
-        num_shards=8, # using Cloud TPU v2-8
-        iterations_per_loop=200)
-    #Define training config
-    run_config = tf.contrib.tpu.RunConfig(
-        cluster=tpu_cluster_resolver,
-        model_dir=flags.job_dir,
-        tpu_config=tpu_config,
-        save_checkpoints_steps=200,
-        save_summary_steps=100)
-    #Build the estimator
-    feature_columns = model.get_feature_columns(
-        tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
+    if flags.use_tpu:
+        tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
+            flags.tpu)
+        tpu_config = tf.contrib.tpu.TPUConfig(
+            num_shards=8, # using Cloud TPU v2-8
+            iterations_per_loop=200)
 
-    estimator = model.build_estimator(run_config, flags, feature_columns)
+        #Define training config
+        run_config = tf.contrib.tpu.RunConfig(
+            cluster=tpu_cluster_resolver,
+            model_dir=flags.job_dir,
+            tpu_config=tpu_config,
+            save_checkpoints_steps=200,
+            save_summary_steps=100)
+        #Build the estimator
+        feature_columns = model.get_feature_columns(
+            tf_transform_output, exclude_columns=metadata.NON_FEATURE_COLUMNS)
 
-    #Run training and evaluation
-    #tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
-    estimator.train(train_input_fn)
+        estimator = model.build_estimator(run_config, flags, feature_columns)
+
+        #Run training and evaluation
+        estimator.train(train_input_fn)
+    else:
+        
+        train_spec = tf.estimator.TrainSpec(
+            train_input_fn, max_steps=flags.train_steps)
+
+        #Define eval spec
+        exporter = tf.estimator.FinalExporter(
+            "export", functools.partial(
+                input_util.tfrecord_serving_input_fn,
+                feature_spec,
+                label_name=metadata.LABEL_COLUMN))
+
+        eval_spec = tf.estimator.EvalSpec(
+            eval_input_fn,
+            steps=flags.eval_steps,
+            start_delay_secs=flags.eval_start_secs,
+            exporters=[exporter],
+            name='MRI-eval'
+        )
+        tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
+
 
 def main():
     #Parse command-line arguments

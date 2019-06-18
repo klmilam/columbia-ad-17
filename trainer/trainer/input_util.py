@@ -7,7 +7,6 @@ import tensorflow as tf
 import tensorflow_transform as tft
 
 
-
 def input_fn(input_dir, mode, batch_size=1, num_epochs=100,
     label_name=None, feature_spec=None):
     """Reads TFRecords and returns the features and labels"""

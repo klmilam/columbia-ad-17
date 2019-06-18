@@ -52,13 +52,13 @@ gcloud ai-platform local train \
 ```
 
 ### Train on the Cloud with AI Platform
-### Train on the Cloud with AI Platform
+#### Using TPUs
 ```
 JOB_NAME="mri_train_$(date +%Y%m%d%H%M%S)"
 
 gcloud ai-platform jobs submit training ${JOB_NAME} \
 --job-dir ${MODEL_DIR} \
---config config.yaml \
+--config tpu_config.yaml \
 --module-name trainer.task \
 --package-path trainer \
 --region us-central1 \
@@ -66,4 +66,5 @@ gcloud ai-platform jobs submit training ${JOB_NAME} \
 --runtime-version 1.13 \
 -- \
 --input-dir ${INPUT_DIR}
+--use-tpu
 ```

@@ -1,0 +1,5 @@
+trainingInput:
+  scaleTier: CUSTOM
+  masterType: complex_model_m
+  workerType: cloud_tpu
+  workerCount: 1
