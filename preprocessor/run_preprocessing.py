@@ -19,7 +19,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--output_dir',
-        default=os.path.join('gs://ieor-dl-group17/mri', timestamp)
+        default=os.path.join('gs://internal-klm-tpu/mri/128_128_16', timestamp)
     )
     parser.add_argument(
         '--log_level',
@@ -40,7 +40,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--project_id',
         help="""Google Cloud project ID""",
-        default='ieor-dl-group17'
+        default='internal-klm'
     )
     parser.add_argument(
         '--input_dir',

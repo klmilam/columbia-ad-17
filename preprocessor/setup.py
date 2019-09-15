@@ -4,10 +4,9 @@ from setuptools import setup
 REQUIRED_PACKAGES = [
     'dltk',
     'nibabel',
-    'numpy>=1.14.2',
-    'pandas>=0.23.4',
     'six',
-    'tensorflow-transform'
+    'tensorflow-transform',
+    'apache-beam[gcp]'
 ]
 
 setup(
