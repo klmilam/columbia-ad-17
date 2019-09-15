@@ -1,9 +1,8 @@
 ## Setup
 
 ### Set up Python environment
-Python 2 is currently required for Dataflow.
 ```
-virtualenv venv --python=/usr/bin/python2.7
+virtualenv venv
 source ./venv/bin/activate
 pip install -r requirements.txt
 ```
