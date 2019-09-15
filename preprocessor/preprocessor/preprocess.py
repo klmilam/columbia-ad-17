@@ -7,6 +7,7 @@ from tensorflow_transform.beam import tft_beam_io
 from tensorflow_transform import coders
 import tensorflow_transform as tft
 from tensorflow_transform.tf_metadata import dataset_schema
+from tensorflow_transform.tf_metadata import dataset_metadata
 
 import tensorflow as tf
 from tensorflow import gfile
@@ -103,6 +104,20 @@ def WriteTFRecord(p, prefix, output_dir, metadata):
             num_shards=num_shards,
             file_name_suffix=".tfrecord"))
 
+
+@beam.ptransform_fn
+def extractAndCount(data, output_dir):
+    (
+        data | 'ExtractLabels' >> beam.Map(
+            lambda x: x['label'])
+        | beam.combiners.Count.PerElement()
+        | beam.io.WriteToText(
+            output_dir + '/counts.txt',
+            shard_name_template='',
+            num_shards=1)
+    )
+    logging.warning("Writing frequency counts to "+ output_dir)
+    
 
 @beam.ptransform_fn
 def randomly_split(p, train_size, validation_size, test_size):
