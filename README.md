@@ -16,20 +16,23 @@ export GOOGLE_APPLICATION_CREDENTIALS=<PATH to GCS Key for gs://columbia-dl-stor
 ## Preprocessing
 ### Set Constants
 ```
-BUCKET=gs://[GCS Bucket]
+BUCKET=gs://[GCS Bucket for TFRecord output]
 NOW="$(date +%Y%m%d%H%M%S)"
 OUTPUT_DIR="${BUCKET}/output_data/${NOW}"
 ```
 
 ### Run locally with Dataflow
 ```
+cd preprocessor
 python preprocessor/run_preprocessing.py \
 --output_dir "${OUTPUT_DIR}"
+cd ..
 ```
 ### Run on the Cloud with Dataflow
 ```
-python preprocessor/run_preprocessing.py --cloud \
---output_dir "${OUTPUT_DIR}"
+cd preprocessor
+python3 -m run_preprocessing --cloud
+cd ..
 ```
   
 
