@@ -24,48 +24,34 @@ OUTPUT_DIR="${BUCKET}/output_data/${NOW}"
 ### Run locally with Dataflow
 ```
 cd preprocessor
-python preprocessor/run_preprocessing.py \
---output_dir "${OUTPUT_DIR}"
+python3 -m run_preprocessing --output_dir "${OUTPUT_DIR}"
 cd ..
 ```
 ### Run on the Cloud with Dataflow
 ```
 cd preprocessor
-python3 -m run_preprocessing --cloud
+python3 -m run_preprocessing --cloud  --output_dir "${OUTPUT_DIR}"
 cd ..
 ```
   
 
 ## Training
-### Set Constants
+### Deploy a v3-8 TPU
+The following commands will open port 22 (allowing you to SSH) and create a TPU and CPU with the given `name`. If the TPU and/or CPU of the given `name` already exist, you'll just SSH into the existing ones. 
+
 ```
-INPUT_DIR="${OUTPUT_DIR}"
-MODEL_DIR="${BUCKET}/model/$(date +%Y%m%d%H%M%S)"
+gcloud compute firewall-rules create ctpu-ssh --allow=tcp:22 --source-ranges=0.0.0.0/0 \ --network=default
+./ctpu up --tpu-size=v3-8 --preemptible --zone=us-central1-a --name=kmilam-tpu
+```
+### Clone the model code onto the VM
+Since you're SSH'd into a VM, you need to clone your code onto the VM.
+```
+git clone https://github.com/klmilam/columbia-ad-17.git
+cd columbia-ad-17
+cd trainer
 ```
 
-### Train locally with AI Platform
+### Training
 ```
-gcloud ai-platform local train \
---module-name trainer.task \
---package-path trainer \
---job-dir ${MODEL_DIR} \
--- \
---input-dir "${INPUT_DIR}"
-```
-
-### Train on the Cloud with AI Platform
-### Train on the Cloud with AI Platform
-```
-JOB_NAME="mri_train_$(date +%Y%m%d%H%M%S)"
-
-gcloud ai-platform jobs submit training ${JOB_NAME} \
---job-dir ${MODEL_DIR} \
---config config.yaml \
---module-name trainer.task \
---package-path trainer \
---region us-central1 \
---python-version 3.5 \
---runtime-version 1.13 \
--- \
---input-dir ${INPUT_DIR}
+python3 -m task
 ```
