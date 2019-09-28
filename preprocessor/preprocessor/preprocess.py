@@ -94,7 +94,7 @@ def WriteTFRecord(p, prefix, output_dir, metadata):
     out_dir = os.path.join(output_dir, 'data', prefix, prefix)
 
     # Examples are large, so we should ensure the TFRecords are relatively small
-    num_shards = 60 if prefix == 'train' else 10
+    num_shards = 60 if prefix == 'train' else 20
     logging.warning("writing TFrecords to "+ out_dir)
     _ = (p
         | "ShuffleData" >> shuffle()  # pylint: disable=no-value-for-parameter
@@ -117,7 +117,7 @@ def extractAndCount(data, output_dir):
             num_shards=1)
     )
     logging.warning("Writing frequency counts to "+ output_dir)
-    
+
 
 @beam.ptransform_fn
 def randomly_split(p, train_size, validation_size, test_size):
@@ -161,6 +161,14 @@ def randomly_split(p, train_size, validation_size, test_size):
     return split_data['Train'], split_data['Val'], split_data['Test']
 
 
+def crop_image(element):
+    """Crops testing and eval datasets."""
+    image = element['image']
+    image = image[16:144, 16:144, 8:24]
+    element['image'] = image
+    return element
+
+
 def run(flags, pipeline_args):
     """Run Apache Beam pipeline to generate TFRecords for Survival Analysis"""
     options = PipelineOptions(flags=[], **pipeline_args)
@@ -169,7 +177,9 @@ def run(flags, pipeline_args):
     runner = 'DataflowRunner' if flags.cloud else 'DirectRunner' 
 
     files = tf.gfile.Glob(flags.input_dir+"*")
-    # files = files[0:10] #[files[0:10]]
+    if not flags.cloud:
+        files = files[0:10] # look a
+
     labels = get_labels_array(
             "gs://columbia-dl-storage-bucket/ADNI_t1_list_with_fsstatus_20190111.csv")
 
@@ -191,8 +201,16 @@ def run(flags, pipeline_args):
                     test_size=.15))
 
             raw_train = raw_train | 'FlattenTrain' >> beam.FlatMap(lambda x: x[1])
-            raw_eval = raw_eval | 'FlattenEval' >> beam.FlatMap(lambda x: x[1])
-            raw_test = raw_test | 'FlattenTest' >> beam.FlatMap(lambda x: x[1])
+            raw_eval = (
+                raw_eval 
+                | 'FlattenEval' >> beam.FlatMap(lambda x: x[1])
+                | 'CropEval' >> beam.Map(crop_image)
+                )
+            raw_test = (
+                raw_test 
+                | 'FlattenTest' >> beam.FlatMap(lambda x: x[1])
+                | 'CropTest' >> beam.Map(crop_image)
+                )
             
             raw_train | 'CountLabelFreq' >> extractAndCount(flags.output_dir)
             
@@ -207,7 +225,7 @@ def run(flags, pipeline_args):
                     flags.output_dir))
             for dataset_type, dataset in [('Train', raw_train), 
                                          ('Eval', raw_eval),
-                                         ('Test', raw_test)]:
+                                         ('Predict', raw_test)]:
 
                 transform_label = 'Transform{}'.format(dataset_type)
                 t, metadata = (((dataset, input_metadata), transform_fn)
