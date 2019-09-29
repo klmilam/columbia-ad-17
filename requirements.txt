@@ -7,3 +7,4 @@ tensorflow>=1.13.1
 tensorflow-transform>=0.13.0
 nibabel
 pandas
+gcsfs

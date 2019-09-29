@@ -161,14 +161,6 @@ def randomly_split(p, train_size, validation_size, test_size):
     return split_data['Train'], split_data['Val'], split_data['Test']
 
 
-def crop_image(element):
-    """Crops testing and eval datasets."""
-    image = element['image']
-    image = image[16:144, 16:144, 8:24]
-    element['image'] = image
-    return element
-
-
 def run(flags, pipeline_args):
     """Run Apache Beam pipeline to generate TFRecords for Survival Analysis"""
     options = PipelineOptions(flags=[], **pipeline_args)
@@ -178,8 +170,9 @@ def run(flags, pipeline_args):
 
     files = tf.gfile.Glob(flags.input_dir+"*")
     if not flags.cloud:
-        files = files[0:10] # look a
+        files = files[0:20] # if running locally for testing, process less files
 
+    logging.warning("Number of files: "+ str(len(files)))
     labels = get_labels_array(
             "gs://columbia-dl-storage-bucket/ADNI_t1_list_with_fsstatus_20190111.csv")
 
@@ -204,12 +197,10 @@ def run(flags, pipeline_args):
             raw_eval = (
                 raw_eval 
                 | 'FlattenEval' >> beam.FlatMap(lambda x: x[1])
-                | 'CropEval' >> beam.Map(crop_image)
                 )
             raw_test = (
                 raw_test 
                 | 'FlattenTest' >> beam.FlatMap(lambda x: x[1])
-                | 'CropTest' >> beam.Map(crop_image)
                 )
             
             raw_train | 'CountLabelFreq' >> extractAndCount(flags.output_dir)
