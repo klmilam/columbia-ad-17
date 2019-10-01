@@ -22,7 +22,7 @@ OUTPUT_DIR="${BUCKET}/output_data/${NOW}"
 ```
 
 ### Run locally with Dataflow
-When testing or debugging a Dataflow pipeline, it's easier to run the pipeline locally first. Due to the memory and computation requirements of the full dataset, the dataset is limited to just 10 files when running locally.
+When testing or debugging a Dataflow pipeline, it's easier to run the pipeline locally first. Due to the memory and computation requirements of the full dataset, the dataset is limited to just 100 files when running locally.
 ```
 cd preprocessor
 python3 -m run_preprocessing --output_dir "${OUTPUT_DIR}"
@@ -37,6 +37,11 @@ cd ..
   
 
 ## Training
+### Install cptu tool
+```bash
+curl -O https://dl.google.com/cloud_tpu/ctpu/latest/darwin/ctpu && chmod a+x ctpu
+```
+
 ### Deploy a v3-8 TPU
 You will use the ctpu tool to deploy a Google Compute Engine (GCE) TPU. 
 
