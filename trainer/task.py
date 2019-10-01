@@ -7,6 +7,7 @@ import functools
 from datetime import datetime
 import time
 import numpy as np
+import pandas as pd
 
 import tensorflow as tf
 import tensorflow_transform as tft
@@ -223,6 +224,12 @@ def train_and_evaluate(params):
                 predict_list[key].extend(p[key].flatten().reshape(-1, 6))
             else:
                 predict_list[key].extend(p[key].flatten())
+
+    predict_list = pd.DataFrame(predict_list).to_dict(
+        'list') # Convert to list of dicts
+    df = pd.DataFrame(predict_list)
+    df.to_csv(os.path.join(
+        params.model_dir, str(params.train_steps), "predictions.csv"))
 
 
 def main(argv):
