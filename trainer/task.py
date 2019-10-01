@@ -189,11 +189,24 @@ def train_and_evaluate(params):
     current_step = load_global_step_from_checkpoint_dir(params.model_dir)
 
     while current_step < int(params.train_steps):
+        # Workaround to support training and evaluating with TPUs
+        # Training stage
         next_checkpoint = min(current_step + 500, int(params.train_steps))
         estimator.train(
             input_fn=train_input_fn,
             max_steps=int(next_checkpoint))
         current_step = next_checkpoint
+        tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
+            next_checkpoint, int(time.time() - start_timestamp))
+
+        # Evaluation stage
+        tf.logging.info('Starting to evaluate at step %d.', next_checkpoint)
+        eval_result = estimator.evaluate(
+            input_fn=eval_input_fn,
+            steps=params.eval_steps)
+        tf.logging.info(
+            'Eval results at step %d: %s', next_checkpoint, eval_result)
+
 
 
 def main(argv):
