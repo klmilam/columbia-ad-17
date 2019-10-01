@@ -38,12 +38,11 @@ tf.flags.DEFINE_string(
          specified, we will attempt to automatically detect the GCE project from 
          metadata.""")
 
-# Model specific parameters
-
+# TPU specific parameters
 
 tf.flags.DEFINE_bool('use_tpu', True, 'Use TPUs rather than plain CPUs')
 tf.flags.DEFINE_bool('enable_predict', True, 'Do some predictions at the end')
-tf.flags.DEFINE_integer('iterations', 30,
+tf.flags.DEFINE_integer('iterations', 25,
                         'Number of iterations per TPU training loop.')
 tf.flags.DEFINE_integer('num_shards', 8, 'Number of shards (TPU chips).')
 
@@ -63,9 +62,9 @@ def parse_arguments(argv):
         default=[1,1,1,1,1,1]
     )
     parser.add_argument(
-        '--data-dir',
+        '--input-dir',
         type=str,
-        default='gs://internal-klm-tpu/mri/128_128_16/20190915162022/'
+        default='gs://internal-klm-tpu/mri/128_128_16/20190923020412/'
     )
     parser.add_argument(
         '--model-dir',
@@ -113,6 +112,20 @@ def parse_arguments(argv):
     return parser.parse_args(argv)
 
 
+def input_fn(input_dir, mode, num_epochs=100, label_name=None,
+    feature_spec=None, params={}):
+    """Reads TFRecords and returns the features and labels for all datasets."""
+
+    def read_and_decode_fn(example):
+        """Parses a Serialized Example."""
+        features = tf.parse_single_example(example, feature_spec)
+        image = features['image']
+        image = tf.cast(image, tf.bfloat16) # TPUs don't support float64
+        image = tf.reshape(image, shape=(160, 160, 32))
+        label = tf.cast(features[label_name], tf.int32)
+        return image, label
+
+
 def train_and_evaluate(params):
     """Runs model training and evaluation using TF Estimator API"""
 
@@ -147,6 +160,11 @@ def train_and_evaluate(params):
             "class_weights": params.class_weights,
             "fixed_weights": np.asarray(params.fixed_weights)},
         config=run_config)
+
+    tf_transform_output = tft.TFTransformOutput(params.input_dir)
+    feature_spec = tf_transform_output.transformed_feature_spec()
+
+    train_input_fn = functools.partial()
 
 
 def main(argv):

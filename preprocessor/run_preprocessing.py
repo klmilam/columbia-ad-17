@@ -29,7 +29,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--machine_type',
         help="""Set machine type for Dataflow worker machines.""",
-        default='n1-highmem-16'
+        default='n1-highmem-4'
     )
     parser.add_argument(
         '--cloud',
