@@ -164,6 +164,17 @@ def input_fn(input_dir, mode, num_epochs=100, label_name=None,
     else:
         dataset = dataset.map(crop, num_parallel_calls=100)
 
+    dataset = dataset.batch(
+        params['batch_size'],
+        drop_remainder=True) # Must drop remainder when working with TPUs
+    dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
+    if prefix == 'predict': # TODO: Switch to INFER
+        # Not necessary to repeat or shuffle prediction dataset
+        return dataset
+
+    dataset = dataset.repeat()
+    dataset = dataset.shuffle(50)
+    return dataset
 
 
 def train_and_evaluate(params):
