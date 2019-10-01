@@ -1,5 +1,8 @@
 """Input functions."""
 
+import tensorflow as tf
+import os
+
 def input_fn(input_dir, mode, num_epochs=100, label_name=None,
     feature_spec=None, params={}):
     """Reads TFRecords and returns the features and labels for all datasets."""

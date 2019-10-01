@@ -5,6 +5,7 @@ import os
 import argparse
 import functools
 from datetime import datetime
+import time
 import numpy as np
 
 import tensorflow as tf
@@ -113,6 +114,15 @@ def parse_arguments(argv):
     return parser.parse_args(argv)
 
 
+def load_global_step_from_checkpoint_dir(checkpoint_dir):
+  try:
+    checkpoint_reader = tf.train.NewCheckpointReader(
+        tf.train.latest_checkpoint(checkpoint_dir))
+    return checkpoint_reader.get_tensor(tf.GraphKeys.GLOBAL_STEP)
+  except:  # pylint: disable=bare-except
+    return 0
+
+
 def train_and_evaluate(params):
     """Runs model training and evaluation using TF Estimator API"""
 
@@ -153,7 +163,7 @@ def train_and_evaluate(params):
 
     train_input_fn = functools.partial(
         input_util.input_fn,
-        input_dir,
+        params.input_dir,
         tf.estimator.ModeKeys.TRAIN,
         num_epochs=100,
         label_name='label',
@@ -161,7 +171,7 @@ def train_and_evaluate(params):
 
     eval_input_fn = functools.partial(
         input_util.input_fn,
-        input_dir,
+        params.input_dir,
         tf.estimator.ModeKeys.EVAL,
         num_epochs=1,
         label_name='label',
@@ -169,11 +179,21 @@ def train_and_evaluate(params):
 
     predict_input_fn = functools.partial(
         input_util.input_fn,
-        input_dir,
+        params.input_dir,
         tf.estimator.ModeKeys.PREDICT,
         num_epochs=1,
         label_name='label',
         feature_spec=feature_spec)
+
+    start_timestamp = time.time()
+    current_step = load_global_step_from_checkpoint_dir(params.model_dir)
+
+    while current_step < int(params.train_steps):
+        next_checkpoint = min(current_step + 500, int(params.train_steps))
+        estimator.train(
+            input_fn=train_input_fn,
+            max_steps=int(next_checkpoint))
+        current_step = next_checkpoint
 
 
 def main(argv):
