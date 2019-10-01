@@ -168,7 +168,7 @@ def input_fn(input_dir, mode, num_epochs=100, label_name=None,
         params['batch_size'],
         drop_remainder=True) # Must drop remainder when working with TPUs
     dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
-    if prefix == 'predict': # TODO: Switch to INFER
+    if mode == tf.estimator.ModeKeys.PREDICT:
         # Not necessary to repeat or shuffle prediction dataset
         return dataset
 
@@ -215,7 +215,29 @@ def train_and_evaluate(params):
     tf_transform_output = tft.TFTransformOutput(params.input_dir)
     feature_spec = tf_transform_output.transformed_feature_spec()
 
-    train_input_fn = functools.partial()
+    train_input_fn = functools.partial(
+        input_fn,
+        input_dir,
+        tf.estimator.ModeKeys.TRAIN,
+        num_epochs=100,
+        label_name='label',
+        feature_spec=feature_spec)
+
+    eval_input_fn = functools.partial(
+        input_fn,
+        input_dir,
+        tf.estimator.ModeKeys.EVAL,
+        num_epochs=1,
+        label_name='label',
+        feature_spec=feature_spec)
+
+    predict_input_fn = functools.partial(
+        input_fn,
+        input_dir,
+        tf.estimator.ModeKeys.PREDICT,
+        num_epochs=1,
+        label_name='label',
+        feature_spec=feature_spec)
 
 
 def main(argv):
