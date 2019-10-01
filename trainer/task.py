@@ -210,9 +210,19 @@ def train_and_evaluate(params):
     elapsed_time = int(time.time() - start_timestamp)
     tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
                     params.train_steps, elapsed_time)
+    # Predictions stage
     predictions = estimator.predict(
         input_fn=predict_input_fn,
         yield_single_examples=False) # Make predictions a batch at a time
+    predict_list = {} # Create a dict of lists to store predictions
+    for p in predictions:
+        for key in p.keys():
+            if key not in predict_list:
+                predict_list[key] = []
+            if key == 'probabilities':
+                predict_list[key].extend(p[key].flatten().reshape(-1, 6))
+            else:
+                predict_list[key].extend(p[key].flatten())
 
 
 def main(argv):
