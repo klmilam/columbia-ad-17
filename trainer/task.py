@@ -197,7 +197,7 @@ def train_and_evaluate(params):
             max_steps=int(next_checkpoint))
         current_step = next_checkpoint
         tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
-            next_checkpoint, int(time.time() - start_timestamp))
+                        next_checkpoint, int(time.time() - start_timestamp))
 
         # Evaluation stage
         tf.logging.info('Starting to evaluate at step %d.', next_checkpoint)
@@ -207,6 +207,12 @@ def train_and_evaluate(params):
         tf.logging.info(
             'Eval results at step %d: %s', next_checkpoint, eval_result)
 
+    elapsed_time = int(time.time() - start_timestamp)
+    tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
+                    params.train_steps, elapsed_time)
+    predictions = estimator.predict(
+        input_fn=predict_input_fn,
+        yield_single_examples=False) # Make predictions a batch at a time
 
 
 def main(argv):
