@@ -55,13 +55,13 @@ FLAGS = tf.flags.FLAGS
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--weight-type',
+        '--weight_type',
         type=str,
         default='',
         help="""Pass 'fixed' to use fixed class weights (based on global frequency)"""
     )
     parser.add_argument(
-        '--fixed-weights',
+        '--fixed_weights',
         default=[1,1,1,1,1,1]
     )
     parser.add_argument(
