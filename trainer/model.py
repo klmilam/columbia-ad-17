@@ -9,6 +9,7 @@ def model_fn(features, labels, mode, params):
     """Constructs 3D CNN model"""
 
     image = features
+    print(params)
 
     if isinstance(image, dict):
         image = features["image"]
