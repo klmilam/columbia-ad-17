@@ -1,6 +1,7 @@
 """Helper functions for calculating performance metrics."""
 
 import tensorflow as tf
+import metrics
 
 def precision(labels, logits, class_id):
     return tf.metrics.precision_at_k(

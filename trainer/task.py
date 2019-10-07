@@ -112,6 +112,12 @@ def parse_arguments(argv):
         default=1024,
         help='Batch size for prediction'
     )
+    parser.add_argument(
+        '--beta',
+        type=float,
+        default=.99999,
+        help='Beta value for beta class weighting'
+    )
     return parser.parse_args(argv)
 
 

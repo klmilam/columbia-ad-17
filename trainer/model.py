@@ -2,12 +2,12 @@
 
 import tensorflow as tf
 import numpy as np
+import metrics
 
 
 def model_fn(features, labels, mode, params):
     """Constructs 3D CNN model"""
 
-    del params
     image = features
 
     if isinstance(image, dict):
@@ -99,8 +99,42 @@ def model_fn(features, labels, mode, params):
         class_weights = np.sum(counts)/counts
         class_weights = tf.reshape(class_weights, [6,1])
     else:
-        beta = .999
+        beta = params.beta
         class_weights = (1.0 - beta)/(1.0 - tf.math.pow(beta, counts))
         class_weights = tf.reshape(class_weights, [6,1])
         class_weights = tf.reshape(
            class_weights/tf.reduce_sum(class_weights), [6,1])
+
+    weights = tf.matmul(
+        labels_onehot,
+        tf.cast(class_weights, tf.float32))
+
+    loss = tf.losses.sparse_softmax_cross_entropy(
+        labels=labels,
+        logits=logits,
+        weights=weights)
+    loss = tf.reduce_mean(loss)
+
+    if mode == tf.estimator.ModeKeys.TRAIN:
+        optimizer = tf.train.AdamOptimizer(
+            learning_rate=params.learning_rate)
+        optimizer = tf.contrib.tpu.CrossShardOptimizer(optimizer)
+       
+        predictions = {
+            'class_ids': class_ids,
+            'probabilities': probabilities
+        }
+        return tf.contrib.tpu.TPUEstimatorSpec(
+            mode=mode,
+            loss=loss,
+            predictions=predictions,
+            eval_metrics=(metrics.metric_fn, [labels, logits]),
+            train_op=optimizer.minimize(loss, tf.train.get_global_step())
+    )
+
+    if mode == tf.estimator.ModeKeys.EVAL:
+        return tf.contrib.tpu.TPUEstimatorSpec(
+            mode=mode,
+            loss=loss,
+            eval_metrics=(metrics.metric_fn, [labels, logits])
+        )
