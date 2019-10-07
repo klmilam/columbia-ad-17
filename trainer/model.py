@@ -92,15 +92,15 @@ def model_fn(features, labels, mode, params):
     labels_onehot = tf.one_hot(labels, 6)
     counts = tf.reduce_sum(labels_onehot, axis=0)
 
-    if params.weight_type == "global_frequency":
-        counts = np.asarray(params.fixed_weights)
+    if params["weight_type"] == "global_frequency":
+        counts = np.asarray(params["fixed_weights"])
         class_weights = np.sum(counts)/counts
         class_weights = tf.reshape(class_weights, [6,1])
-    elif params.weight_type == "batch_frequency":
+    elif params["weight_type"] == "batch_frequency":
         class_weights = np.sum(counts)/counts
         class_weights = tf.reshape(class_weights, [6,1])
     else:
-        beta = params.beta
+        beta = params["beta"]
         class_weights = (1.0 - beta)/(1.0 - tf.math.pow(beta, counts))
         class_weights = tf.reshape(class_weights, [6,1])
         class_weights = tf.reshape(
@@ -118,7 +118,7 @@ def model_fn(features, labels, mode, params):
 
     if mode == tf.estimator.ModeKeys.TRAIN:
         optimizer = tf.train.AdamOptimizer(
-            learning_rate=params.learning_rate)
+            learning_rate=params["learning_rate"])
         optimizer = tf.contrib.tpu.CrossShardOptimizer(optimizer)
        
         predictions = {
