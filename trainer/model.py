@@ -92,7 +92,7 @@ def model_fn(features, labels, mode, params):
     counts = tf.reduce_sum(labels_onehot, axis=0)
 
     if params.weight_type == "global_frequency":
-        counts = params.fixed_weights
+        counts = np.asarray(params.fixed_weights)
         class_weights = np.sum(counts)/counts
         class_weights = tf.reshape(class_weights, [6,1])
     elif params.weight_type == "batch_frequency":
