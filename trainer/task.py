@@ -159,7 +159,12 @@ def train_and_evaluate(params):
         train_batch_size=params.train_batch_size,
         eval_batch_size=params.eval_batch_size,
         predict_batch_size=params.predict_batch_size,
-        params=params.copy(),
+        params={
+            "weight_type": params.weight_type,
+            "beta": params.beta,
+            "learning_rate": params.learning_rate,
+            "fixed_weights": params.fixed_weights
+        },
         config=run_config)
 
     tf_transform_output = tft.TFTransformOutput(params.input_dir)
