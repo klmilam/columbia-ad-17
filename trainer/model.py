@@ -1,48 +1,13 @@
 """TensorFlow model definition."""
 
-def metric_fn(labels, logits):
+import tensorflow as tf
+import numpy as np
 
-    def precision(labels, logits, class_id):
-        return tf.metrics.precision_at_k(
-            labels=labels,
-            predictions=logits,
-            k=1,
-            class_id=class_id)
-
-
-    def recall(labels, logits, class_id):
-        return tf.metrics.recall_at_k(
-            labels=labels,
-            predictions=logits,
-            k=1,
-            class_id=class_id)
-
-
-    predictions = tf.argmax(logits, axis=1)
-    accuracy = tf.metrics.accuracy(
-        labels=labels, predictions=predictions)
-    # calculate accuracy for each class, then takes the mean of that
-    mean_per_class_accuracy = tf.metrics.mean_per_class_accuracy(
-        labels=labels,
-        predictions=predictions,
-        num_classes=6
-    )
-    labels = tf.cast(labels, tf.int64)
-    output = {
-        "accuracy": accuracy,
-        "mean_per_class_accuracy": mean_per_class_accuracy
-    }
-    for i in range(0, 6):
-        key = "precision_class_"+str(i)
-        output[key] = precision(labels, logits, i)
-    for i in range(0, 6):
-        key = "recall_class_"+str(i)
-        output[key] = recall(labels, logits, i)
-    return output
 
 def model_fn(features, labels, mode, params):
     """Constructs 3D CNN model"""
 
+    del params
     image = features
 
     if isinstance(image, dict):
@@ -94,8 +59,11 @@ def model_fn(features, labels, mode, params):
 
         pool2_flat = tf.layers.flatten(pool2)
 
-        dense2 = tf.layers.dense(
+        dense1 = tf.layers.dense(
             inputs=pool2_flat, units=512, activation=tf.nn.relu)
+
+        dense2 = tf.layers.dense(
+            inputs=dense1, units=512, activation=tf.nn.relu)
 
         batch_norm = tf.layers.batch_normalization(dense2)
 
@@ -111,7 +79,8 @@ def model_fn(features, labels, mode, params):
 
     if mode == tf.estimator.ModeKeys.PREDICT:
         predictions = {
-            'class_ids': class_ids,
+            'pred_class_ids': class_ids,
+            'actual_class_ids': labels,
             'probabilities': probabilities
         }
         return tf.contrib.tpu.TPUEstimatorSpec(
