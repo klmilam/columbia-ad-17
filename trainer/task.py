@@ -195,11 +195,10 @@ def train_and_evaluate(params):
     while current_step < int(params.train_steps):
         # Workaround to support training and evaluating with TPUs
         # Training stage
-        print(current_step)
         next_checkpoint = min(current_step + 500, int(params.train_steps))
         estimator.train(
             input_fn=train_input_fn,
-            max_steps=int(next_checkpoint))
+            max_steps=next_checkpoint)
         current_step = next_checkpoint
         tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
                         next_checkpoint, int(time.time() - start_timestamp))
