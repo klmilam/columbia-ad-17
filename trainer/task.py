@@ -118,7 +118,7 @@ def parse_arguments(argv):
         default=.99999,
         help='Beta value for beta class weighting'
     )
-    return parser.parse_args(argv)
+    return parser.parse_args()
 
 
 def load_global_step_from_checkpoint_dir(checkpoint_dir):
