@@ -59,10 +59,9 @@ If you reuse the same `name` and do not delete your CPU between uses, your code 
 ```
 git clone https://github.com/klmilam/columbia-ad-17.git
 cd columbia-ad-17
-cd trainer
 ```
 
 ### Training
 ```
-python3 -m task
+python3 -m trainer.task
 ```
