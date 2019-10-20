@@ -53,12 +53,13 @@ FLAGS = tf.flags.FLAGS
 
 
 def parse_arguments(argv):
+    """Parses command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--weight_type',
         type=str,
-        default='',
-        help="""Pass 'fixed' to use fixed class weights (based on global frequency)"""
+        default='beta',
+        help="""Pass 'fixed' to use fixed class weights (based on global frequency)."""
     )
     parser.add_argument(
         '--fixed_weights',
@@ -131,7 +132,7 @@ def load_global_step_from_checkpoint_dir(checkpoint_dir):
 
 
 def train_and_evaluate(params):
-    """Runs model training and evaluation using TF Estimator API"""
+    """Runs model training and evaluation using TF Estimator API."""
 
     tpu_cluster_resolver = tf.contrib.cluster_resolver.TPUClusterResolver(
         FLAGS.tpu,
@@ -249,5 +250,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    tf.logging.set_verbosity(tf.logging.DEBUG)
+    tf.logging.set_verbosity(tf.logging.INFO)
     absl_app.run(main)
