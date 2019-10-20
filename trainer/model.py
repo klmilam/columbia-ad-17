@@ -3,7 +3,7 @@
 import tensorflow as tf
 import numpy as np
 
-from . import metrics
+from trainer import metrics
 
 
 def model_fn(features, labels, mode, params):
