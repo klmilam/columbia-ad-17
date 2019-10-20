@@ -2,7 +2,8 @@
 
 import tensorflow as tf
 import numpy as np
-import metrics
+
+from . import metrics
 
 
 def model_fn(features, labels, mode, params):
