@@ -14,8 +14,8 @@ import tensorflow_transform as tft
 
 from absl import app as absl_app
 
-from . import model
-from . import input_util
+from trainer import model
+from trainer import input_util
 
 SEED = 123
 
