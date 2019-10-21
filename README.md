@@ -75,8 +75,6 @@ Cloud AI Platform is a managed service for training machine learning models. It 
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --staging-bucket "gs://internal-klm-tpu" \
         --config config.yaml \
-        --python-version 3.5 \
-        --runtime-version 1.14 \
         --module-name trainer.task \
         --package-path trainer/ \
         --region us-central1

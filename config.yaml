@@ -1,5 +1,9 @@
+#
+
 trainingInput:
   scaleTier: CUSTOM
+  runtimeVersion: '1.14'
+  pythonVersion: '3.5'
   masterType: n1-highcpu-16
   workerType: cloud_tpu
   workerCount: 1
