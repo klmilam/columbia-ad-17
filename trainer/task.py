@@ -80,7 +80,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-steps',
         type=int,
-        default=1000,
+        default=1500,
         help='Total number of training steps.'
     )
     parser.add_argument(
@@ -92,7 +92,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--learning-rate',
         type=float,
-        default='0.0000005',
+        default=3e-5,
         help='learning rate'
     )
     parser.add_argument(
@@ -118,6 +118,11 @@ def parse_arguments(argv):
         type=float,
         default=.99999,
         help='Beta value for beta class weighting'
+    )
+    parser.add_argument(
+        '--steps_per_eval',
+        default=500,
+        help='Number of training steps to complete before evaluating.'
     )
     return parser.parse_args()
 
@@ -201,7 +206,7 @@ def train_and_evaluate(params):
     while current_step < int(params.train_steps):
         # Workaround to support training and evaluating with TPUs
         # Training stage
-        next_checkpoint = min(current_step + 500, int(params.train_steps))
+        next_checkpoint = min(current_step + params.steps_per_eval, int(params.train_steps))
         estimator.train(
             input_fn=train_input_fn,
             max_steps=next_checkpoint)

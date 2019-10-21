@@ -104,8 +104,6 @@ def model_fn(features, labels, mode, params):
         beta = params["beta"]
         class_weights = (1.0 - beta)/(1.0 - tf.math.pow(beta, counts))
         class_weights = tf.reshape(class_weights, [6,1])
-        class_weights = tf.reshape(
-           class_weights/tf.reduce_sum(class_weights), [6,1])
 
     weights = tf.matmul(
         labels_onehot,

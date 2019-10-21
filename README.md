@@ -79,3 +79,30 @@ gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --package-path trainer/ \
         --region us-central1
 ```
+
+#### Train on TPU V2
+If TPU V3 resources are insufficient, try running the model on a TPU V2.
+```bash
+gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
+        --staging-bucket "gs://internal-klm-tpu" \
+        --runtime-version 1.14 \
+        --python-version 3.5 \
+        --scale-tier BASIC_TPU \
+        --module-name trainer.task \
+        --package-path trainer/ \
+        --region us-central1
+```
+
+#### Hyperparameter Tuning
+We'll use TPU V2 for hyperparameter tuning, since we'll need multiple TPUs for each 
+```bash
+gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
+        --staging-bucket "gs://internal-klm-tpu" \
+        --config hptuning.yaml \
+        --runtime-version 1.14 \
+        --python-version 3.5 \
+        --scale-tier BASIC_TPU \
+        --module-name trainer.task \
+        --package-path trainer/ \
+        --region us-central1
+```

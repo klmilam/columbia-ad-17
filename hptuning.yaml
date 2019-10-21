@@ -1,0 +1,18 @@
+trainingInput:
+  hyperparameters:
+    goal: MAXIMIZE
+    enableTrialEarlyStopping: true
+    hyperparameterMetricTag: mean_per_class_accuracy
+    maxTrials: 10
+    maxParallelTrials: 2
+    params:
+      - parameterName: learning-rate
+        type: DOUBLE
+        minValue: 1e-7
+        maxValue: 1e-2
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: beta
+        type: DOUBLE
+        minValue: .9
+        maxValue: 1.0
+        scaleType: UNIT_LINEAR_SCALE
