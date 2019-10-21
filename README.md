@@ -37,31 +37,47 @@ cd ..
   
 
 ## Training
-### Install cptu tool
+The model code be run using either the ctpu tool or Cloud AI Platform with minimal code changes. 
+### Training using the ctpu tool
+#### Install cptu tool
 ```bash
 curl -O https://dl.google.com/cloud_tpu/ctpu/latest/darwin/ctpu && chmod a+x ctpu
 ```
 
-### Deploy a v3-8 TPU
+#### Deploy a v3-8 TPU
 You will use the ctpu tool to deploy a Google Compute Engine (GCE) TPU. 
 
 The following commands will open port 22 (allowing you to SSH) and create a TPU and CPU with the given `name`. If the TPU and/or CPU of the given `name` already exist, you'll just SSH into the existing ones.
 
-```
+```bash
 gcloud compute firewall-rules create ctpu-ssh --allow=tcp:22 --source-ranges=0.0.0.0/0 \
     --network=default
 ./ctpu up --tpu-size=v3-8 --preemptible --zone=us-central1-a --name=kmilam-tpu
 ```
-### Clone the model code onto the VM
+#### Clone the model code onto the VM
 Since you're SSH'd into a VM, you need to clone your code onto the VM.
 
 If you reuse the same `name` and do not delete your CPU between uses, your code will remain on the CPU. 
-```
+```bash
 git clone https://github.com/klmilam/columbia-ad-17.git
 cd columbia-ad-17
 ```
 
-### Training
-```
+#### Start training
+```bash
 python3 -m trainer.task
+```
+
+### Training using Cloud AI Platform
+Cloud AI Platform is a managed service for training machine learning models. It offers built-in support for hyperparameter tuning.
+
+```bash
+gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
+        --staging-bucket "gs://internal-klm-tpu" \
+        --config config.yaml \
+        --python-version 3.5 \
+        --runtime-version 1.14 \
+        --module-name trainer.task \
+        --package-path trainer/ \
+        --region us-central1
 ```
