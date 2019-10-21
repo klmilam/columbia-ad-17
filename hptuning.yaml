@@ -8,8 +8,8 @@ trainingInput:
     params:
       - parameterName: learning-rate
         type: DOUBLE
-        minValue: 1e-7
-        maxValue: 1e-2
+        minValue: .00000001 # YAML floats should include a `.`
+        maxValue: .01
         scaleType: UNIT_LINEAR_SCALE
       - parameterName: beta
         type: DOUBLE

@@ -45,7 +45,7 @@ curl -O https://dl.google.com/cloud_tpu/ctpu/latest/darwin/ctpu && chmod a+x ctp
 ```
 
 #### Deploy a v3-8 TPU
-You will use the ctpu tool to deploy a Google Compute Engine (GCE) TPU. 
+You can use the ctpu tool to deploy a Google Compute Engine (GCE) TPU. 
 
 The following commands will open port 22 (allowing you to SSH) and create a TPU and CPU with the given `name`. If the TPU and/or CPU of the given `name` already exist, you'll just SSH into the existing ones.
 
@@ -69,8 +69,7 @@ python3 -m trainer.task
 ```
 
 ### Training using Cloud AI Platform
-Cloud AI Platform is a managed service for training machine learning models. It offers built-in support for hyperparameter tuning.
-
+Cloud AI Platform is a managed service for training machine learning models. This means that we do not deploy TPU/CPU resources; this is managed by the service.
 ```bash
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --staging-bucket "gs://internal-klm-tpu" \
@@ -80,8 +79,8 @@ gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --region us-central1
 ```
 
-#### Train on TPU V2
-If TPU V3 resources are insufficient, try running the model on a TPU V2.
+#### Train on v2-8 TPU
+If v3-8 TPU resources are insufficient, try running the model on a v2-8 TPU. This will have the same number of shards as the v3-8 TPU, so no code changes (i.e. changing hyperparameters) are necessary.
 ```bash
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --staging-bucket "gs://internal-klm-tpu" \
@@ -94,7 +93,10 @@ gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
 ```
 
 #### Hyperparameter Tuning
-We'll use TPU V2 for hyperparameter tuning, since we'll need multiple TPUs for each 
+Cloud AI Platform offers built-in support for hyperparameter tuning.
+
+We'll use a v2-8 TPU for hyperparameter tuning, since we'll need multiple TPUs for each hptuning trial. Ideally, we would run more than 2 trails in parallel. However, we only have quota for 16 TPU V2s, so we can only run 2 concurrent trials (each on a v2-8 TPU).
+
 ```bash
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --staging-bucket "gs://internal-klm-tpu" \

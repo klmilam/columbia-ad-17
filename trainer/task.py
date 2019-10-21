@@ -48,7 +48,8 @@ tf.flags.DEFINE_bool('enable_predict', True, 'Do some predictions at the end')
 tf.flags.DEFINE_integer('iterations', 25,
                         'Number of iterations per TPU training loop.')
 tf.flags.DEFINE_integer('num_shards', 8, 'Number of shards (TPU chips).')
-
+tf.flags.DEFINE_float('learning-rate', 3e-5, 'Learning rate')
+tf.flags.DEFINE_float('beta', .99999, 'Beta for class weighting')
 FLAGS = tf.flags.FLAGS
 
 
@@ -98,7 +99,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-batch-size',
         type=int,
-        default=1024,
+        default=2048,
         help='Batch size for training'
     )
     parser.add_argument(
