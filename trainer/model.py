@@ -22,7 +22,7 @@ def model_fn(features, labels, mode, params, hidden_units, reg_rate):
         conv1 = tf.layers.conv3d(
             inputs=x,
             filters=96,
-            stride=2,
+            strides=2,
             kernel_size=[7,7,7],
             activation=tf.nn.relu
         )
@@ -189,7 +189,7 @@ def model_fn(features, labels, mode, params, hidden_units, reg_rate):
         conv2 = tf.layers.conv3d(
             inputs=squeeze8_3,
             filters=1000,
-            stride=1,
+            strides=1,
             kernel_size=[1,1,1],
             activation=tf.nn.relu
         )
