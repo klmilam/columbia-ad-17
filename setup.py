@@ -1,7 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-REQUIRED_PACKAGES = ['tensorflow-transform>=0.13.0']
+REQUIRED_PACKAGES = ['tensorflow-transform==0.14.0', 'gcsfs', 'pandas']
 
 setup(
     name='trainer',

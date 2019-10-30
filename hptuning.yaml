@@ -1,18 +1,54 @@
 trainingInput:
+  runtimeVersion: '1.14'
+  pythonVersion: '3.5'
   hyperparameters:
     goal: MAXIMIZE
     enableTrialEarlyStopping: true
     hyperparameterMetricTag: mean_per_class_accuracy
-    maxTrials: 10
+    maxTrials: 2
     maxParallelTrials: 2
     params:
       - parameterName: learning-rate
         type: DOUBLE
         minValue: .00000001 # YAML floats should include a `.`
-        maxValue: .01
+        maxValue: .0001
         scaleType: UNIT_LINEAR_SCALE
       - parameterName: beta
         type: DOUBLE
-        minValue: .9
+        minValue: .95
         maxValue: 1.0
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: first-layer-size
+        type: DISCRETE
+        discreteValues:
+        - 256
+        - 512
+        - 1028
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: num-layers
+        type: DISCRETE
+        discreteValues:
+        #- 1
+        - 2
+        - 3
+        - 4
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: layer-sizes-scale-factor
+        type: DISCRETE
+        discreteValues:
+        - .5
+        - 1
+        # - 2
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: reg_rate
+        type: DOUBLE
+        minValue: 0.4
+        maxValue: 0.7
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: first-filter-size
+        type: DISCRETE
+        discreteValues:
+        - 256
+        - 512
+        - 1028
         scaleType: UNIT_LINEAR_SCALE
