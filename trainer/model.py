@@ -6,7 +6,7 @@ import numpy as np
 from trainer import metrics
 
 
-def model_fn(features, labels, mode, params):
+def model_fn(features, labels, mode, params, hidden_units, reg_rate):
     """Constructs 3D CNN model"""
 
     image = features
@@ -18,62 +18,238 @@ def model_fn(features, labels, mode, params):
     with tf.contrib.tpu.bfloat16_scope():
 
         x = tf.reshape(features, [-1, 128, 128, 16, 1])
-
+        #squeezenet
         conv1 = tf.layers.conv3d(
             inputs=x,
-            filters=16,
-            kernel_size=[3,3,3],
+            filters=96,
+            stride=2,
+            kernel_size=[7,7,7],
             activation=tf.nn.relu
         )
-
-        conv2 = tf.layers.conv3d(
-            inputs=conv1,
-            filters=32,
-            kernel_size=[3,3,3],
-            activation=tf.nn.relu
-        )
-
         pool1 = tf.layers.max_pooling3d(
-            inputs=conv2,
-            pool_size=[2, 2, 2],
+            inputs=conv1,
+            pool_size=[3, 3, 3],
             strides=[2, 2, 2]
         )
-
-        conv4 = tf.layers.conv3d(
+        squeeze1_1 = tf.layers.conv3d(
             inputs=pool1,
+            filters=16,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze1_2 = tf.layers.conv3d(
+            inputs=squeeze1_1,
+            filters=64,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze1_3 = tf.layers.conv3d(
+            inputs=squeeze1_2,
             filters=64,
             kernel_size=[3,3,3],
             activation=tf.nn.relu
         )
-
-        conv5 = tf.layers.conv3d(
-            inputs=conv4,
+        squeeze2_1 = tf.layers.conv3d(
+            inputs=squeeze1_3,
+            filters=16,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze2_2 = tf.layers.conv3d(
+            inputs=squeeze2_1,
+            filters=64,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze2_3 = tf.layers.conv3d(
+            inputs=squeeze2_2,
+            filters=64,
+            kernel_size=[3,3,3],
+            activation=tf.nn.relu
+        )
+        squeeze3_1 = tf.layers.conv3d(
+            inputs=squeeze2_3,
+            filters=32,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze3_2 = tf.layers.conv3d(
+            inputs=squeeze3_1,
+            filters=128,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze3_3 = tf.layers.conv3d(
+            inputs=squeeze3_3,
+            filters=128,
+            kernel_size=[3,3,3],
+            activation=tf.nn.relu
+        )
+        pool2 = tf.layers.max_pooling3d(
+            inputs=squeeze3_3,
+            pool_size=[3, 3, 3],
+            strides=[2, 2, 2]
+        )
+        squeeze4_1 = tf.layers.conv3d(
+            inputs=pool2,
+            filters=32,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze4_2 = tf.layers.conv3d(
+            inputs=squeeze4_1,
+            filters=128,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze4_3 = tf.layers.conv3d(
+            inputs=squeeze4_2,
             filters=128,
             kernel_size=[3,3,3],
             activation=tf.nn.relu
         )
 
-        pool2 = tf.layers.max_pooling3d(
-            inputs=conv5,
-            pool_size=[2, 2, 2],
+        squeeze5_1 = tf.layers.conv3d(
+            inputs=squeeze4_3,
+            filters=48,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze5_2 = tf.layers.conv3d(
+            inputs=squeeze5_1,
+            filters=192,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze5_3 = tf.layers.conv3d(
+            inputs=squeeze5_2,
+            filters=192,
+            kernel_size=[3,3,3],
+            activation=tf.nn.relu
+        )
+        squeeze6_1 = tf.layers.conv3d(
+            inputs=squeeze5_3,
+            filters=48,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze6_2 = tf.layers.conv3d(
+            inputs=squeeze6_1,
+            filters=192,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze6_3 = tf.layers.conv3d(
+            inputs=squeeze6_2,
+            filters=192,
+            kernel_size=[3,3,3],
+            activation=tf.nn.relu
+        )
+        squeeze7_1 = tf.layers.conv3d(
+            inputs=squeeze6_3,
+            filters=64,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze7_2 = tf.layers.conv3d(
+            inputs=squeeze7_1,
+            filters=256,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze7_3 = tf.layers.conv3d(
+            inputs=squeeze7_2,
+            filters=256,
+            kernel_size=[3,3,3],
+            activation=tf.nn.relu
+        )
+        pool3 = tf.layers.max_pooling3d(
+            inputs=squeeze7_3,
+            pool_size=[3, 3, 3],
             strides=[2, 2, 2]
         )
+        squeeze8_1 = tf.layers.conv3d(
+            inputs=pool3,
+            filters=64,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze8_2 = tf.layers.conv3d(
+            inputs=squeeze8_1,
+            filters=256,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        squeeze8_3 = tf.layers.conv3d(
+            inputs=squeeze8_2,
+            filters=256,
+            kernel_size=[3,3,3],
+            activation=tf.nn.relu
+        )
+        conv2 = tf.layers.conv3d(
+            inputs=squeeze8_3,
+            filters=1000,
+            stride=1,
+            kernel_size=[1,1,1],
+            activation=tf.nn.relu
+        )
+        logits = tf.squeeze(
+            input=conv2,
+            [6]
+        )
+        # conv1 = tf.layers.conv3d(
+        #     inputs=x,
+        #     filters=96,
+        #     kernel_size=[3,3,3],
+        #     activation=tf.nn.relu
+        # )
 
-        pool2_flat = tf.layers.flatten(pool2)
+        # conv2 = tf.layers.conv3d(
+        #     inputs=conv1,
+        #     filters=32,
+        #     kernel_size=[3,3,3],
+        #     activation=tf.nn.relu
+        # )
 
-        dense1 = tf.layers.dense(
-            inputs=pool2_flat, units=512, activation=tf.nn.relu)
+        # pool1 = tf.layers.max_pooling3d(
+        #     inputs=conv2,
+        #     pool_size=[2, 2, 2],
+        #     strides=[2, 2, 2]
+        # )
 
-        dense2 = tf.layers.dense(
-            inputs=dense1, units=512, activation=tf.nn.relu)
+        # conv4 = tf.layers.conv3d(
+        #     inputs=pool1,
+        #     filters=64,
+        #     kernel_size=[3,3,3],
+        #     activation=tf.nn.relu
+        # )
 
-        batch_norm = tf.layers.batch_normalization(dense2)
+        # conv5 = tf.layers.conv3d(
+        #     inputs=conv4,
+        #     filters=128,
+        #     kernel_size=[3,3,3],
+        #     activation=tf.nn.relu
+        # )
+
+        # pool2 = tf.layers.max_pooling3d(
+        #     inputs=conv5,
+        #     pool_size=[2, 2, 2],
+        #     strides=[2, 2, 2]
+        # )
+
+        layer = tf.layers.flatten(pool2)
+
+        for units in hidden_units:
+            layer = tf.layers.dense(
+                inputs=layer, units=units, activation=tf.nn.relu)
+
+        batch_norm = tf.layers.batch_normalization(layer)
 
         # regularization
-        dropout = tf.layers.dropout(batch_norm, rate=0.5)
+        dropout = tf.layers.dropout(batch_norm, rate=reg_rate)
 
-        logits = tf.layers.dense(
-            inputs=dropout, units=6)
+        # logits = tf.layers.dense(
+        #     inputs=dropout, units=6)
 
         logits = tf.cast(logits, tf.float32) # Casting necessary to use bfloat32
         probabilities = tf.nn.softmax(logits)

@@ -50,6 +50,12 @@ tf.flags.DEFINE_integer('iterations', 25,
 tf.flags.DEFINE_integer('num_shards', 8, 'Number of shards (TPU chips).')
 tf.flags.DEFINE_float('learning-rate', 3e-5, 'Learning rate')
 tf.flags.DEFINE_float('beta', .99999, 'Beta for class weighting')
+tf.flags.DEFINE_integer('first-layer-size', 512,
+                        'Number of hidden units in first dense layer.')
+tf.flags.DEFINE_integer('num-layers', 1, 'Number of layers.')
+tf.flags.DEFINE_float('layer-sizes-scale-factor', .5,
+                      'Determine how the size of the layers in the DNN decays.')
+tf.flags.DEFINE_float('reg_rate', .5, 'Regularization rate.')
 FLAGS = tf.flags.FLAGS
 
 
@@ -81,7 +87,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-steps',
         type=int,
-        default=1500,
+        default=1000,
         help='Total number of training steps.'
     )
     parser.add_argument(
@@ -99,7 +105,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-batch-size',
         type=int,
-        default=2048,
+        default=1024,  # Try larger batch size
         help='Batch size for training'
     )
     parser.add_argument(
@@ -124,6 +130,31 @@ def parse_arguments(argv):
         '--steps_per_eval',
         default=500,
         help='Number of training steps to complete before evaluating.'
+    )
+    parser.add_argument(
+        '--first-layer-size',
+        help='Number of hidden units in first layer.',
+        type=int,
+        default=512,
+    )
+    parser.add_argument(
+        '--num-layers',
+        help='Number of layers.',
+        type=int,
+        default=1,
+    )
+    parser.add_argument(
+        '--layer-sizes-scale-factor',
+        help="""Determine how the size of the layers in the DNN decays.
+        If value = 0 then the provided --hidden-units will be taken as is.""",
+        default=0.5,
+        type=float,
+    )
+    parser.add_argument(
+        '--reg_rate',
+        help="Regularization rate.",
+        default=0.5,
+        type=float
     )
     return parser.parse_args()
 
@@ -159,9 +190,18 @@ def train_and_evaluate(params):
             per_host_input_for_training=tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
         )
     )
+    hidden_units = [
+        max(2, int(
+            params.first_layer_size * params.layer_sizes_scale_factor**i))
+        for i in range(params.num_layers)
+    ]
+
+    model_fn = functools.partial(model.model_fn,
+                                 hidden_units=hidden_units,
+                                 reg_rate=params.reg_rate)
 
     estimator = tf.contrib.tpu.TPUEstimator(
-        model_fn=model.model_fn,
+        model_fn=model_fn,
         use_tpu=FLAGS.use_tpu,
         train_batch_size=params.train_batch_size,
         eval_batch_size=params.eval_batch_size,
