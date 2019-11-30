@@ -5,7 +5,7 @@ trainingInput:
     goal: MAXIMIZE
     enableTrialEarlyStopping: true
     hyperparameterMetricTag: mean_per_class_accuracy
-    maxTrials: 2
+    maxTrials: 20
     maxParallelTrials: 2
     params:
       - parameterName: learning-rate
@@ -48,7 +48,15 @@ trainingInput:
       - parameterName: first-filter-size
         type: DISCRETE
         discreteValues:
-        - 256
-        - 512
-        - 1028
+        - 8
+        - 16
+        - 32
+        # - 64 # Large filter size >> OOM
+        scaleType: UNIT_LINEAR_SCALE
+      - parameterName: cnn-layer-sizes-scale-factor
+        type: DISCRETE
+        discreteValues:
+        - .5
+        - 1
+        - 2
         scaleType: UNIT_LINEAR_SCALE

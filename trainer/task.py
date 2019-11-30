@@ -56,6 +56,10 @@ tf.flags.DEFINE_integer('num-layers', 1, 'Number of layers.')
 tf.flags.DEFINE_float('layer-sizes-scale-factor', .5,
                       'Determine how the size of the layers in the DNN decays.')
 tf.flags.DEFINE_float('reg_rate', .5, 'Regularization rate.')
+tf.flags.DEFINE_float('cnn-layer-sizes-scale-factor', .5,
+                      'Determine how the size of the layers in the DNN decays.')
+tf.flags.DEFINE_integer('first-filter-size', 96,
+                        'Number of hidden units in first dense layer.')
 FLAGS = tf.flags.FLAGS
 
 
@@ -156,6 +160,18 @@ def parse_arguments(argv):
         default=0.5,
         type=float
     )
+    parser.add_argument(
+        '--cnn-layer-sizes-scale-factor',
+        help=".",
+        default=0.5,
+        type=float
+    )
+    parser.add_argument(
+        '--first-filter-size',
+        help=".",
+        default=96,
+        type=int
+    )
     return parser.parse_args()
 
 
@@ -196,9 +212,17 @@ def train_and_evaluate(params):
         for i in range(params.num_layers)
     ]
 
+    cnn_filters = [
+        min(128,
+            max(8, int(
+            params.first_filter_size * params.cnn_layer_sizes_scale_factor**i)))
+        for i in range(4)
+    ]
+
     model_fn = functools.partial(model.model_fn,
                                  hidden_units=hidden_units,
-                                 reg_rate=params.reg_rate)
+                                 reg_rate=params.reg_rate,
+                                 cnn_filters=cnn_filters)
 
     estimator = tf.contrib.tpu.TPUEstimator(
         model_fn=model_fn,
