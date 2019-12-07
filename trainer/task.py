@@ -91,7 +91,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-steps',
         type=int,
-        default=2000,
+        default=1250,
         help='Total number of training steps.'
     )
     parser.add_argument(
@@ -132,7 +132,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--steps_per_eval',
-        default=250,
+        default=10,
         help='Number of training steps to complete before evaluating.'
     )
     parser.add_argument(
@@ -273,7 +273,6 @@ def train_and_evaluate(params):
 
     while current_step < int(params.train_steps):
         # Workaround to support training and evaluating with TPUs
-        # Training stage
         next_checkpoint = min(current_step + params.steps_per_eval, int(params.train_steps))
         estimator.train(
             input_fn=train_input_fn,
@@ -282,7 +281,6 @@ def train_and_evaluate(params):
         tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
                         next_checkpoint, int(time.time() - start_timestamp))
 
-        # Evaluation stage
         tf.logging.info('Starting to evaluate at step %d.', next_checkpoint)
         eval_result = estimator.evaluate(
             input_fn=eval_input_fn,
@@ -293,7 +291,6 @@ def train_and_evaluate(params):
     elapsed_time = int(time.time() - start_timestamp)
     tf.logging.info('Finished training up to step %d. Elapsed seconds %d.',
                     params.train_steps, elapsed_time)
-    # Predictions stage
     predictions = estimator.predict(
         input_fn=predict_input_fn,
         yield_single_examples=False) # Make predictions a batch at a time

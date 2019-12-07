@@ -4,8 +4,8 @@ trainingInput:
   hyperparameters:
     goal: MAXIMIZE
     enableTrialEarlyStopping: true
-    hyperparameterMetricTag: mean_per_class_accuracy
-    maxTrials: 20
+    hyperparameterMetricTag: macro_f1
+    maxTrials: 25
     maxParallelTrials: 2
     params:
       - parameterName: learning-rate
