@@ -132,7 +132,7 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--steps_per_eval',
-        default=10,
+        default=750,
         help='Number of training steps to complete before evaluating.'
     )
     parser.add_argument(
@@ -207,14 +207,14 @@ def train_and_evaluate(params):
         )
     )
     hidden_units = [
-        max(2, int(
-            params.first_layer_size * params.layer_sizes_scale_factor**i))
+        min(max(2, int(
+            params.first_layer_size * params.layer_sizes_scale_factor**i)), 1028)
         for i in range(params.num_layers)
     ]
     tf.logging.info(hidden_units)
 
     cnn_filters = [
-        min(128,
+        min(64,
             max(8, int(
             params.first_filter_size * params.cnn_layer_sizes_scale_factor**i)))
         for i in range(4)
