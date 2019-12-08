@@ -48,17 +48,17 @@ tf.flags.DEFINE_bool('enable_predict', True, 'Do some predictions at the end')
 tf.flags.DEFINE_integer('iterations', 25,
                         'Number of iterations per TPU training loop.')
 tf.flags.DEFINE_integer('num_shards', 8, 'Number of shards (TPU chips).')
-tf.flags.DEFINE_float('learning-rate', 6.4238739218711854e-05, 'Learning rate')
-tf.flags.DEFINE_float('beta', 0.98817585110664363, 'Beta for class weighting')
-tf.flags.DEFINE_integer('first-layer-size', 256,
+tf.flags.DEFINE_float('learning-rate', 3.0525789430926807e-05, 'Learning rate')
+tf.flags.DEFINE_float('beta', 0.95222197891743543, 'Beta for class weighting')
+tf.flags.DEFINE_integer('first-layer-size', 1028,
                         'Number of hidden units in first dense layer.')
-tf.flags.DEFINE_integer('num-layers', 4, 'Number of layers.')
+tf.flags.DEFINE_integer('num-layers', 2, 'Number of layers.')
 tf.flags.DEFINE_float('layer-sizes-scale-factor', 1,
                       'Determine how the size of the layers in the DNN decays.')
-tf.flags.DEFINE_float('reg_rate', 0.571440327167511, 'Regularization rate.')
-tf.flags.DEFINE_float('cnn-layer-sizes-scale-factor', .5,
+tf.flags.DEFINE_float('reg_rate', 0.698033405107297, 'Regularization rate.')
+tf.flags.DEFINE_float('cnn-layer-sizes-scale-factor', 2,
                       'Determine how the size of the layers in the DNN decays.')
-tf.flags.DEFINE_integer('first-filter-size', 32,
+tf.flags.DEFINE_integer('first-filter-size', 8,
                         'Number of hidden units in first dense layer.')
 FLAGS = tf.flags.FLAGS
 
@@ -91,7 +91,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-steps',
         type=int,
-        default=1250,
+        default=2000,
         help='Total number of training steps.'
     )
     parser.add_argument(
@@ -103,7 +103,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--learning-rate',
         type=float,
-        default=6.4238739218711854e-05,
+        default=3.0525789430926807e-05,
         help='learning rate'
     )
     parser.add_argument(
@@ -127,25 +127,25 @@ def parse_arguments(argv):
     parser.add_argument(
         '--beta',
         type=float,
-        default=0.98817585110664363,
+        default=0.95222197891743543,
         help='Beta value for beta class weighting'
     )
     parser.add_argument(
         '--steps_per_eval',
-        default=750,
+        default=250,
         help='Number of training steps to complete before evaluating.'
     )
     parser.add_argument(
         '--first-layer-size',
         help='Number of hidden units in first layer.',
         type=int,
-        default=256,
+        default=1028,
     )
     parser.add_argument(
         '--num-layers',
         help='Number of layers.',
         type=int,
-        default=4,
+        default=2,
     )
     parser.add_argument(
         '--layer-sizes-scale-factor',
@@ -157,19 +157,19 @@ def parse_arguments(argv):
     parser.add_argument(
         '--reg_rate',
         help="Regularization rate.",
-        default=0.571440327167511,
+        default=0.698033405107297,
         type=float
     )
     parser.add_argument(
         '--cnn-layer-sizes-scale-factor',
         help=".",
-        default=0.5,
+        default=2,
         type=float
     )
     parser.add_argument(
         '--first-filter-size',
         help=".",
-        default=32,
+        default=8,
         type=int
     )
     return parser.parse_args()
