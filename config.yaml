@@ -1,5 +1,3 @@
-#
-
 trainingInput:
   scaleTier: CUSTOM
   runtimeVersion: '1.14'

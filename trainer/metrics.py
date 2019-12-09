@@ -62,7 +62,8 @@ def metric_fn(labels, logits):
     accuracy = tf.metrics.accuracy(
         labels=labels, predictions=predictions)
 
-    # calculate accuracy for each class, then takes the mean of that
+    # The metric name is misleading. This function calculates recall for each
+    # class, then takes the mean of that.
     mean_per_class_accuracy = tf.metrics.mean_per_class_accuracy(
         labels=labels,
         predictions=predictions,

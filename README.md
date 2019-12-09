@@ -68,28 +68,41 @@ cd columbia-ad-17
 python3 -m trainer.task
 ```
 
+### Set Constants
+```
+NOW="$(date +%Y%m%d%H%M%S)"
+INPUT_DIR=${OUTPUT_DIR}
+MODEL_DIR=${BUCKET}/model/${NOW}
+STAGING_DIR = ${BUCKET}/staging
+```
+
+
 ### Training using Cloud AI Platform
 Cloud AI Platform is a managed service for training machine learning models. This means that we do not deploy TPU/CPU resources; this is managed by the service.
 ```bash
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
-        --staging-bucket "gs://internal-klm-tpu" \
+        --staging-bucket ${STAGING_DIR} \
         --config config.yaml \
         --module-name trainer.task \
         --package-path trainer/ \
-        --region us-central1
+        --region us-central1 \
+        --input-dir ${INPUT_DIR} \
+        --model-dir ${MODEL_DIR}
 ```
 
 #### Train on v2-8 TPU
 If v3-8 TPU resources are insufficient, try running the model on a v2-8 TPU. This will have the same number of shards as the v3-8 TPU, so no code changes (i.e. changing hyperparameters) are necessary.
 ```bash
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
-        --staging-bucket "gs://internal-klm-tpu" \
+        --staging-bucket ${STAGING_DIR} \
         --runtime-version 1.14 \
         --python-version 3.5 \
         --scale-tier BASIC_TPU \
         --module-name trainer.task \
         --package-path trainer/ \
-        --region us-central1
+        --region us-central1 \
+        --input-dir ${INPUT_DIR} \
+        --model-dir ${MODEL_DIR}
 ```
 
 #### Hyperparameter Tuning
@@ -99,12 +112,14 @@ We'll use a v2-8 TPU for hyperparameter tuning, since we'll need multiple TPUs f
 
 ```bash
 gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
-        --staging-bucket "gs://internal-klm-tpu" \
+        --staging-bucket ${STAGING_DIR} \
         --config hptuning.yaml \
         --runtime-version 1.14 \
         --python-version 3.5 \
         --scale-tier BASIC_TPU \
         --module-name trainer.task \
         --package-path trainer/ \
-        --region us-central1
+        --region us-central1 \
+        --input-dir ${INPUT_DIR} \
+        --model-dir ${MODEL_DIR}
 ```

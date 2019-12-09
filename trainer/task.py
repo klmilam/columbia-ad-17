@@ -74,24 +74,27 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--fixed_weights',
-        default=[1,1,1,1,1,1]
+        default=[1,1,1,1,1,1],
+        help="""Array (6 elements) of the per-class weights that should be
+        applied the loss function when using --weight_type fixed."""
     )
     parser.add_argument(
         '--input-dir',
         type=str,
-        default='gs://internal-klm-tpu/mri/128_128_16/20190923020412/'
+        required=True,
+        help="""Directory storing input TFRecord files."""
     )
     parser.add_argument(
         '--model-dir',
         type=str,
-        default='gs://internal-klm-tpu/mri/model/'+ datetime.now().strftime('%Y%m%d%H%M%S'),
+        required=True,
         help="""Location to write checkpoints and summaries to.
              Must be a GCS URI when using Cloud TPU."""
     )
     parser.add_argument(
         '--train-steps',
         type=int,
-        default=2000,
+        default=1500,
         help='Total number of training steps.'
     )
     parser.add_argument(
@@ -109,7 +112,7 @@ def parse_arguments(argv):
     parser.add_argument(
         '--train-batch-size',
         type=int,
-        default=1024,  # Try larger batch size
+        default=1024,
         help='Batch size for training'
     )
     parser.add_argument(
@@ -143,14 +146,13 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--num-layers',
-        help='Number of layers.',
+        help='Number of dense layers.',
         type=int,
         default=2,
     )
     parser.add_argument(
         '--layer-sizes-scale-factor',
-        help="""Determine how the size of the layers in the DNN decays.
-        If value = 0 then the provided --hidden-units will be taken as is.""",
+        help="""Determine how the sizes of the dense layers decay.""",
         default=1,
         type=float,
     )
@@ -162,13 +164,13 @@ def parse_arguments(argv):
     )
     parser.add_argument(
         '--cnn-layer-sizes-scale-factor',
-        help=".",
+        help="Determine how the sizes of the CNN filters decay.",
         default=2,
         type=float
     )
     parser.add_argument(
         '--first-filter-size',
-        help=".",
+        help="Filter size of the first CNN layer.",
         default=8,
         type=int
     )
@@ -211,7 +213,7 @@ def train_and_evaluate(params):
             params.first_layer_size * params.layer_sizes_scale_factor**i)), 1028)
         for i in range(params.num_layers)
     ]
-    tf.logging.info(hidden_units)
+    tf.logging.info("Hidden layer sizes: "+ str(hidden_units))
 
     cnn_filters = [
         min(64,
@@ -220,7 +222,7 @@ def train_and_evaluate(params):
         for i in range(4)
     ]
 
-    tf.logging.info(cnn_filters)
+    tf.logging.info("CNN filter sizes: " + str(cnn_filters))
 
     model_fn = functools.partial(model.model_fn,
                                  hidden_units=hidden_units,
@@ -294,6 +296,7 @@ def train_and_evaluate(params):
     predictions = estimator.predict(
         input_fn=predict_input_fn,
         yield_single_examples=False) # Make predictions a batch at a time
+
     predict_list = {} # Create a dict of lists to store predictions
     for p in predictions:
         for key in p.keys():
@@ -305,16 +308,14 @@ def train_and_evaluate(params):
                 predict_list[key].extend(p[key].flatten())
 
     predict_list = pd.DataFrame(predict_list).to_dict(
-        'list') # Convert to list of dicts
+        'list')  # Convert to list of dicts
     df = pd.DataFrame(predict_list)
-    df.to_csv(os.path.join(
-        params.model_dir, str(params.train_steps), "predictions.csv"))
+    df.to_csv(os.path.join(params.model_dir, "predictions.csv"))
 
 
 def main(argv):
     # Parse command-line arguments
     params = parse_arguments(argv[1:])
-    tf.logging.info(params)
     #Run model training and evaluate
     train_and_evaluate(params)
 
