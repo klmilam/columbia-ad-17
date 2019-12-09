@@ -123,3 +123,5 @@ gcloud ai-platform jobs submit training "tpu_training_$(date +%Y%m%d%H%M%S)" \
         --input-dir ${INPUT_DIR} \
         --model-dir ${MODEL_DIR}
 ```
+
+Note: This is not an officially supported Google product
