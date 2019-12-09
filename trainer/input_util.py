@@ -1,3 +1,16 @@
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Input functions."""
 
 import tensorflow as tf
@@ -43,7 +56,7 @@ def input_fn(input_dir, mode, num_epochs=100, label_name=None,
     file_pattern = os.path.join(
         input_dir, 'data', prefix, prefix + '*' + suffix)
     tf.logging.info(prefix + ' data from ' + file_pattern)
-    filenames = tf.matching_files(file_pattern) # list of TFRecords files
+    filenames = tf.matching_files(file_pattern)  # list of TFRecords files
 
     dataset = tf.data.TFRecordDataset(filenames=filenames, buffer_size=None)
     dataset = dataset.map(read_and_decode_fn, num_parallel_calls=100)
@@ -57,7 +70,7 @@ def input_fn(input_dir, mode, num_epochs=100, label_name=None,
 
     dataset = dataset.batch(
         params['batch_size'],
-        drop_remainder=True) # Must drop remainder when working with TPUs
+        drop_remainder=True)  # Must drop remainder when working with TPUs
     dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
     if mode == tf.estimator.ModeKeys.PREDICT:
         # Not necessary to repeat or shuffle prediction dataset
